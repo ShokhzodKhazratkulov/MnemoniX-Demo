@@ -392,7 +392,7 @@ const App: React.FC = () => {
         <FeedbackModal 
           onClose={() => setShowFeedback(false)} 
           language={selectedLanguage} 
-          receiverEmail="mnemonix.feedback@gmail.com" // Update this with your actual email
+          receiverEmail="khazratkulovshokhzod@gmail.com"
         />
       )}
     </div>

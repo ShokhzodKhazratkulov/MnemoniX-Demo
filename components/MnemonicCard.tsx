@@ -151,14 +151,22 @@ export const MnemonicCard: React.FC<Props> = ({ data, imageUrl, language }) => {
             <button 
               onClick={handlePlayAudio}
               disabled={isAudioLoading}
-              className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
+              className={`w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-lg ${
                 isPlaying ? 'bg-red-500 text-white animate-pulse' : 'bg-indigo-600 text-white hover:bg-indigo-700'
               } disabled:bg-gray-300 relative`}
               title="Listen to pronunciation"
             >
-              {isAudioLoading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white animate-spin rounded-full" /> : 
-               isPlaying ? <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" /></svg> :
-               <svg className="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" /></svg>}
+              {isAudioLoading ? (
+                <div className="w-8 h-8 border-4 border-white/30 border-t-white animate-spin rounded-full" /> 
+              ) : isPlaying ? (
+                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M5 4h3v12H5V4zm7 0h3v12h-3V4z"/>
+                </svg>
+              ) : (
+                <svg className="w-10 h-10 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M7 4l10 8-10 8z" />
+                </svg>
+              )}
             </button>
           </div>
           {audioError && <p className="text-xs font-bold text-red-500 animate-bounce">{audioError}</p>}
