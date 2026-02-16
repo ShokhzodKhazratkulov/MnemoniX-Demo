@@ -8,7 +8,64 @@ interface Props {
   targetLanguage: Language;
 }
 
-// Manual encoding/decoding functions as per guidelines
+const VOICE_T: Record<Language, any> = {
+  [Language.UZBEK]: { 
+    connecting: "Ulanmoqda...", 
+    ready: "Tayyor! Gapiring...", 
+    error: "Xatolik yuz berdi.", 
+    quotaError: "Limit tugadi. Biroz kuting.",
+    micError: "Mikrofonni yoqib bo'lmadi.",
+    title: "Live Mnemonika",
+    finish: "Yakunlash",
+    aiLabel: "Usta",
+    userLabel: "Siz"
+  },
+  [Language.KAZAKH]: { 
+    connecting: "Қосылуда...", 
+    ready: "Дайын! Сөйлеңіз...", 
+    error: "Қате орын алды.", 
+    quotaError: "Лимит таусылды. Күте тұрыңыз.",
+    micError: "Микрофонды қосу мүмкін болмады.",
+    title: "Live Мнемоника",
+    finish: "Аяқтау",
+    aiLabel: "Шебер",
+    userLabel: "Сіз"
+  },
+  [Language.TAJIK]: { 
+    connecting: "Пайваст шуда истодааст...", 
+    ready: "Тайёр! Гӯед...", 
+    error: "Хатогӣ рӯй дод.", 
+    quotaError: "Маҳдудияти квота. Лутфан интизор шавед.",
+    micError: "Микрофонро фаъол карда нашуд.",
+    title: "Мнемоникаи Зинда",
+    finish: "Анҷом",
+    aiLabel: "Устод",
+    userLabel: "Шумо"
+  },
+  [Language.KYRGYZ]: { 
+    connecting: "Туташууда...", 
+    ready: "Даяр! Сүйлөңүз...", 
+    error: "Ката кетти.", 
+    quotaError: "Лимит бүттү. Күтө туруңуз.",
+    micError: "Микрофонду күйгүзүү мүмкүн болгон жок.",
+    title: "Live Мнемоника",
+    finish: "Бүтүрүү",
+    aiLabel: "Устат",
+    userLabel: "Сиз"
+  },
+  [Language.RUSSIAN]: { 
+    connecting: "Подключение...", 
+    ready: "Готово! Говорите...", 
+    error: "Произошла ошибка.", 
+    quotaError: "Лимит исчерпан. Подождите.",
+    micError: "Не удалось включить микрофон.",
+    title: "Живая Мнемоника",
+    finish: "Завершить",
+    aiLabel: "Мастер",
+    userLabel: "Вы"
+  },
+};
+
 function decode(base64: string) {
   if (!base64) return new Uint8Array(0);
   try {
@@ -41,12 +98,9 @@ async function decodeAudioData(
   numChannels: number,
 ): Promise<AudioBuffer | null> {
   if (data.length === 0) return null;
-  
-  // Ensure buffer length is multiple of 2
   const bufferToUse = data.byteLength % 2 === 0 ? data.buffer : data.buffer.slice(0, data.byteLength - 1);
   const dataInt16 = new Int16Array(bufferToUse);
   const frameCount = dataInt16.length / numChannels;
-  
   if (frameCount <= 0) return null;
 
   try {
@@ -77,8 +131,9 @@ function createBlob(data: Float32Array): Blob {
 }
 
 export const VoiceMode: React.FC<Props> = ({ onClose, targetLanguage }) => {
+  const t = VOICE_T[targetLanguage];
   const [isActive, setIsActive] = useState(false);
-  const [status, setStatus] = useState("Ulanmoqda...");
+  const [status, setStatus] = useState(t.connecting);
   const [transcriptions, setTranscriptions] = useState<string[]>([]);
   
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -94,14 +149,13 @@ export const VoiceMode: React.FC<Props> = ({ onClose, targetLanguage }) => {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
         audioContextRef.current = outputAudioContext;
-        
         const inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
 
         sessionPromise = ai.live.connect({
           model: 'gemini-2.5-flash-native-audio-preview-12-2025',
           callbacks: {
             onopen: () => {
-              setStatus("Tayyor! Gapiring...");
+              setStatus(t.ready);
               setIsActive(true);
               
               const source = inputAudioContext.createMediaStreamSource(stream);
@@ -120,52 +174,59 @@ export const VoiceMode: React.FC<Props> = ({ onClose, targetLanguage }) => {
             },
             onmessage: async (message: LiveServerMessage) => {
               if (message.serverContent?.outputTranscription) {
-                  setTranscriptions(prev => [...prev.slice(-4), `Usta: ${message.serverContent.outputTranscription.text}`]);
+                  setTranscriptions(prev => [...prev.slice(-4), `${t.aiLabel}: ${message.serverContent.outputTranscription.text}`]);
               } else if (message.serverContent?.inputTranscription) {
-                  setTranscriptions(prev => [...prev.slice(-4), `Siz: ${message.serverContent.inputTranscription.text}`]);
+                  setTranscriptions(prev => [...prev.slice(-4), `${t.userLabel}: ${message.serverContent.inputTranscription.text}`]);
               }
 
               const base64EncodedAudioString = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
               if (base64EncodedAudioString && audioContextRef.current) {
                 const decodedData = decode(base64EncodedAudioString);
-                const audioBuffer = await decodeAudioData(
-                  decodedData,
-                  audioContextRef.current,
-                  24000,
-                  1,
-                );
+                const audioBuffer = await decodeAudioData(decodedData, audioContextRef.current, 24000, 1);
                 
                 if (audioBuffer) {
                   const source = audioContextRef.current.createBufferSource();
                   source.buffer = audioBuffer;
                   source.connect(audioContextRef.current.destination);
-                  
                   nextStartTimeRef.current = Math.max(nextStartTimeRef.current, audioContextRef.current.currentTime);
                   source.start(nextStartTimeRef.current);
                   nextStartTimeRef.current = nextStartTimeRef.current + audioBuffer.duration;
-                  
                   sourcesRef.current.add(source);
                   source.onended = () => sourcesRef.current.delete(source);
                 }
               }
 
               if (message.serverContent?.interrupted) {
-                sourcesRef.current.forEach(s => {
-                  try { s.stop(); } catch(e) {}
-                });
+                sourcesRef.current.forEach(s => { try { s.stop(); } catch(e) {} });
                 sourcesRef.current.clear();
                 nextStartTimeRef.current = 0;
               }
             },
-            onerror: (err) => {
+            onerror: (err: any) => {
                 console.error('Session error:', err);
-                setStatus("Xatolik yuz berdi.");
+                const msg = err?.message || '';
+                if (msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED')) {
+                  setStatus(t.quotaError);
+                } else {
+                  setStatus(t.error);
+                }
             },
             onclose: () => setIsActive(false),
           },
           config: {
             responseModalities: [Modality.AUDIO],
-            systemInstruction: `Siz professional "Mnemonika va Ingliz tili ustozi"siz. Foydalanuvchi bilan ovozli muloqot qiling. So'zlarni eslab qolish uchun kulgili tasavvurlar va ${targetLanguage} tilidagi o'xshashliklar keltiring. DIQQAT: Faqat ${targetLanguage} tilida gapiring.`,
+            systemInstruction: `Siz professional 'Mnemonika va Ingliz tili ustozi'siz. Sizning vazifangiz foydalanuvchiga xorijiy (ingliz) so‘zlarni bir marta ko‘rganda eslab qoladigan darajada qiziqarli va assotsiativ usulda tushuntirish.
+            
+            Har bir so‘z uchun quyidagi strukturani qo‘llang:
+            1. So‘zning transkripsiyasi va ${targetLanguage}cha ma’nosini aniq ayting.
+            2. Morfologik tahlil: So‘zni mantiqiy qismlarga bo‘ling.
+            3. Tasavvur (Imagination): Yorqin, g‘alati yoki kulgili sahna yarating.
+            4. Phonetic Link (Talaffuz bog'liqligi): So‘zning talaffuzi ${targetLanguage} tilidagi qaysi so‘zga o‘xshashligini toping va bog'lang.
+            5. Connector Sentence: So‘z va tasvirni birlashtiruvchi 1 ta qisqa gap.
+            6. Examples: So‘z qatnashgan 2 ta oddiy gap (Inglizcha gap, keyin tarjimasi).
+            7. Visualisation Command: Foydalanuvchiga ushbu tasvirni 5 soniya davomida tasavvur qilishni buyuring.
+            
+            STRICT REQUIREMENT: Communicate EXCLUSIVELY in the ${targetLanguage} language. Use natural, flowing sentences optimized for Gemini Live. Be warm, motivating, and humorous.`,
             speechConfig: {
               voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } }
             },
@@ -176,7 +237,7 @@ export const VoiceMode: React.FC<Props> = ({ onClose, targetLanguage }) => {
 
       } catch (err) {
         console.error('Initialization error:', err);
-        setStatus("Mikrofonni yoqib bo'lmadi.");
+        setStatus(t.micError);
       }
     };
 
@@ -187,7 +248,7 @@ export const VoiceMode: React.FC<Props> = ({ onClose, targetLanguage }) => {
         sessionPromise.then(s => s.close());
       }
     };
-  }, [targetLanguage]);
+  }, [targetLanguage, t]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-indigo-900/95 backdrop-blur-xl p-4">
@@ -203,19 +264,19 @@ export const VoiceMode: React.FC<Props> = ({ onClose, targetLanguage }) => {
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-white">Live Mnemonika</h2>
+          <h2 className="text-2xl font-bold text-white">{t.title}</h2>
           <p className="text-indigo-200">{status}</p>
         </div>
 
-        <div className="w-full bg-black/20 rounded-2xl p-4 min-h-[150px] text-left space-y-2 text-sm text-gray-300">
-           {transcriptions.map((t, i) => <p key={i}>{t}</p>)}
+        <div className="w-full bg-black/20 rounded-2xl p-4 min-h-[150px] text-left space-y-2 text-sm text-gray-300 overflow-y-auto">
+           {transcriptions.map((t, i) => <p key={i} className="animate-fadeIn">{t}</p>)}
         </div>
 
         <button 
           onClick={onClose}
-          className="px-8 py-3 bg-red-500 hover:bg-red-600 text-white rounded-full font-bold transition-all"
+          className="px-8 py-3 bg-red-500 hover:bg-red-600 text-white rounded-full font-bold transition-all shadow-xl active:scale-95"
         >
-          Yakunlash
+          {t.finish}
         </button>
       </div>
     </div>

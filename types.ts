@@ -19,10 +19,25 @@ export interface MnemonicResponse {
   imagePrompt: string;
 }
 
+export interface SavedMnemonic {
+  id: string;
+  word: string;
+  data: MnemonicResponse;
+  imageUrl: string;
+  timestamp: number;
+  language: Language;
+}
+
 export enum AppState {
   IDLE = 'IDLE',
   LOADING = 'LOADING',
   RESULTS = 'RESULTS',
   VOICE_MODE = 'VOICE_MODE',
   ERROR = 'ERROR'
+}
+
+export enum AppView {
+  HOME = 'HOME',
+  DASHBOARD = 'DASHBOARD',
+  FLASHCARDS = 'FLASHCARDS'
 }
