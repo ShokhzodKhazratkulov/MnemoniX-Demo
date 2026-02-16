@@ -1,0 +1,7 @@
+{
+  "name": "MnemoniX: Ingliz Tili Mnemonika Ustozi",
+  "description": "Xorijiy so'zlarni assotsiatsiyalar va qiziqarli tasavvurlar orqali bir zumda eslab qolishga yordam beruvchi aqlli yordamchi.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
