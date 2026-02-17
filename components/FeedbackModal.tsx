@@ -14,6 +14,7 @@ const FEEDBACK_T: Record<Language, any> = {
   [Language.TAJIK]: { title: "Фикру мулоҳиза", desc: "Шумо барои такмил додани барнома пешниҳод доред? Ба мо нависед!", labelName: "Номи шумо (ихтиёрӣ)", labelMsg: "Пешниҳоди шумо", btnSend: "Фиристодан", btnCancel: "Бекор кардан", subject: "MnemoniX: Пешниҳод барои такмил" },
   [Language.KYRGYZ]: { title: "Пикир-пикир", desc: "Тиркемени жакшыртуу боюнча сунушуңуз барбы? Бизге жазыңыз!", labelName: "Атыңыз (милдеттүү эмес)", labelMsg: "Сиздин сунушуңуз", btnSend: "Жөнөтүү", btnCancel: "Жокко чыгаруу", subject: "MnemoniX: Жакшыртуу боюнча сунуш" },
   [Language.RUSSIAN]: { title: "Обратная связь", desc: "У вас есть предложения по улучшению приложения? Напишите нам!", labelName: "Ваше имя (необязательно)", labelMsg: "Ваше предложение", btnSend: "Отправить", btnCancel: "Отмена", subject: "MnemoniX: Предложение по улучшению" },
+  [Language.TURKMEN]: { title: "Teswir", desc: "Programmany gowulandyrmak üçin teklipleriňiz barmy? Bize ýazyň!", labelName: "Adyňyz (islege görä)", labelMsg: "Siziň teklipleriňiz", btnSend: "Ugrat", btnCancel: "Ýatyr", subject: "MnemoniX: Gowulandyrmak üçin teklip" },
 };
 
 export const FeedbackModal: React.FC<Props> = ({ onClose, language, receiverEmail }) => {

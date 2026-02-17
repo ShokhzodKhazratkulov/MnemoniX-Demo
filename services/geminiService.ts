@@ -134,12 +134,12 @@ export class GeminiService {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
-        contents: [{ parts: [{ text: `Speak the following in ${targetLanguage} naturally: ${text}` }] }],
+        contents: [{ parts: [{ text: `You will be given a text containing an English word followed by its explanation in ${targetLanguage}. Pronounce the English word in a clear, standard English accent. Pronounce the rest of the text in a natural, fluent ${targetLanguage} accent. Here is the text: "${text}"` }] }],
         config: {
           responseModalities: [Modality.AUDIO],
           speechConfig: {
             voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: 'Zephyr' },
+              prebuiltVoiceConfig: { voiceName: 'Kore' },
             },
           },
         },

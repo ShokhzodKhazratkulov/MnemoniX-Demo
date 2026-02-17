@@ -13,6 +13,7 @@ const FLASH_T: Record<Language, any> = {
   [Language.TAJIK]: { title: "Флэш-кортҳо", range: "Давраро интихоб кунед", empty: "Ҳанӯз чизе омӯхта نشدهаст", start: "Оғоз", next: "Оянда", prev: "Пешина", finish: "Анҷом", from: "Таърихи оғоз", to: "Таърихи анҷом", hint: "Барои чаппа кардани корт пахш кунед" },
   [Language.KYRGYZ]: { title: "Флэш-карталар", range: "Мөөнөттү тандаңыз", empty: "Азырынча эч нерсе үйрөнүлө элек", start: "Баштоо", next: "Кийинки", prev: "Мурунку", finish: "Бүтүрүү", from: "Баштоо күнү", to: "Аяктоо күнү", hint: "Картаны которуу үчүн басыңыз" },
   [Language.RUSSIAN]: { title: "Флэш-карты", range: "Выберите период", empty: "Еще ничего не выучено", start: "Начать", next: "Далее", prev: "Назад", finish: "Завершить", from: "Дата начала", to: "Дата окончания", hint: "Нажмите, чтобы перевернуть" },
+  [Language.TURKMEN]: { title: "Fleş-kartlar", range: "Döwri saýlaň", empty: "Entek hiç zat öwrenilmedi", start: "Başlat", next: "Indiki", prev: "Öňki", finish: "Gutar", from: "Başlangyç senesi", to: "Tamatlanýan senesi", hint: "Karty aýlamak üçin basyň" },
 };
 
 export const Flashcards: React.FC<Props> = ({ savedMnemonics, language }) => {
@@ -102,9 +103,9 @@ export const Flashcards: React.FC<Props> = ({ savedMnemonics, language }) => {
           {/* Front Side */}
           <div className="absolute inset-0 backface-hidden bg-white rounded-[3rem] overflow-hidden shadow-2xl border-8 border-white">
             <img src={current.imageUrl} className="w-full h-full object-cover" alt="Flashcard Front" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-10">
-              <h3 className="text-6xl font-black text-white tracking-tighter drop-shadow-2xl">{current.word}</h3>
-              <p className="text-white/70 font-mono mt-2">[{current.data.transcription}]</p>
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-6 md:p-10 pt-20">
+              <h3 className="text-4xl sm:text-6xl font-black text-white tracking-tighter drop-shadow-2xl break-all">{current.word}</h3>
+              <p className="text-white/70 font-mono mt-2 break-words">[{current.data.transcription}]</p>
             </div>
             
             <div className="absolute top-8 left-8 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-xl text-black text-[10px] font-black tracking-widest border border-indigo-100 shadow-xl">
@@ -117,26 +118,26 @@ export const Flashcards: React.FC<Props> = ({ savedMnemonics, language }) => {
           </div>
 
           {/* Back Side */}
-          <div className="absolute inset-0 backface-hidden rotate-y-180 bg-indigo-600 rounded-[3rem] p-10 flex flex-col justify-center text-center shadow-2xl border-8 border-indigo-500 overflow-y-auto">
-            <div className="space-y-8">
+          <div className="absolute inset-0 backface-hidden rotate-y-180 bg-indigo-600 rounded-[3rem] pt-12 px-6 pb-6 md:pt-16 md:px-10 md:pb-10 flex flex-col justify-start text-center shadow-2xl border-8 border-indigo-500 overflow-y-auto overflow-x-hidden">
+            <div className="space-y-6 md:space-y-8">
               <div className="space-y-2">
                 <span className="text-indigo-200 text-[10px] font-black uppercase tracking-[0.2em]">Word</span>
-                <h3 className="text-5xl font-black text-white tracking-tighter">{current.word}</h3>
+                <h3 className="text-3xl sm:text-5xl font-black text-white tracking-tighter break-all">{current.word}</h3>
               </div>
               
               <div className="space-y-2">
                 <span className="text-indigo-200 text-[10px] font-black uppercase tracking-[0.2em]">Meaning</span>
-                <p className="text-white font-black text-3xl">{current.data.meaning}</p>
+                <p className="text-white font-black text-2xl sm:text-3xl break-words">{current.data.meaning}</p>
               </div>
 
-              <div className="space-y-3 bg-white/10 rounded-3xl p-6 backdrop-blur-md border border-white/10">
+              <div className="space-y-3 bg-white/10 rounded-3xl p-4 md:p-6 backdrop-blur-md border border-white/10">
                 <span className="text-indigo-200 text-[10px] font-black uppercase tracking-[0.2em]">Imagination</span>
-                <p className="text-white/90 text-lg italic leading-relaxed">{current.data.imagination}</p>
+                <p className="text-white/90 text-lg italic leading-relaxed break-words">{current.data.imagination}</p>
               </div>
 
               <div className="space-y-2">
                  <span className="text-indigo-200 text-[10px] font-black uppercase tracking-[0.2em]">Mnemonic Link</span>
-                 <p className="text-indigo-100 font-bold">{current.data.phoneticLink}</p>
+                 <p className="text-indigo-100 font-bold break-words">{current.data.phoneticLink}</p>
               </div>
             </div>
 

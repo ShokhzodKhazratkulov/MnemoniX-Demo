@@ -14,6 +14,7 @@ const DASH_T: Record<Language, any> = {
   [Language.TAJIK]: { title: "Фаолият", stats: "Омори омӯзиш", total: "Ҳамагӣ омӯхташуда", range: "Диапазони сана", noData: "Маълумот ёфт нашуд", from: "Аз", to: "То" },
   [Language.KYRGYZ]: { title: "Активдүүлүк", stats: "Окуу статистикасы", total: "Жалпы үйрөнүлгөн", range: "Күн аралыгы", noData: "Маалымат табылган жок", from: "Дан", to: "Чейин" },
   [Language.RUSSIAN]: { title: "Активность", stats: "Статистика обучения", total: "Всего выучено", range: "Диапазон дат", noData: "Данных не найдено", from: "С", to: "По" },
+  [Language.TURKMEN]: { title: "Işjeňlik", stats: "Öwreniş statistikasy", total: "Jemi öwrenilen", range: "Sene aralygy", noData: "Maglumat tapylmady", from: "Başlap", to: "Çenli" },
 };
 
 export const Dashboard: React.FC<Props> = ({ savedMnemonics, language, onDelete }) => {

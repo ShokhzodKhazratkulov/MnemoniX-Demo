@@ -4,7 +4,8 @@ export enum Language {
   KAZAKH = 'Kazakh',
   TAJIK = 'Tajik',
   KYRGYZ = 'Kyrgyz',
-  RUSSIAN = 'Russian'
+  RUSSIAN = 'Russian',
+  TURKMEN = 'Turkmen'
 }
 
 export interface MnemonicResponse {

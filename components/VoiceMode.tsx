@@ -64,6 +64,17 @@ const VOICE_T: Record<Language, any> = {
     aiLabel: "Мастер",
     userLabel: "Вы"
   },
+  [Language.TURKMEN]: {
+    connecting: "Birikdirilýär...", 
+    ready: "Taýýar! Gepleň...", 
+    error: "Ýalňyşlyk ýüze çykdy.", 
+    quotaError: "Limit gutardy. Garaşyň.",
+    micError: "Mikrofony işledip bolmady.",
+    title: "Janly Mnemonika",
+    finish: "Gutar",
+    aiLabel: "Ussat",
+    userLabel: "Siz"
+  },
 };
 
 function decode(base64: string) {

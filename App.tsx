@@ -95,6 +95,23 @@ const TRANSLATIONS: Record<Language, any> = {
     dictationStart: "Говорите...",
     dictationError: "Не удалось распознать.",
     feedbackBtn: "Предложения",
+  },
+  [Language.TURKMEN]: {
+    title: "MnemoniX",
+    subtitle: "Her sözde bir hekaýa bar.",
+    desc: "Iňlis sözlerini mnemonika arkaly aňsat öwreniň.",
+    searchPlaceholder: "Meselem: 'Ambitious' ýa-da 'Relinquish'",
+    btnAnalyze: "Analiz",
+    btnLive: "Sesli Kömekçi",
+    navHome: "Baş sahypa",
+    navDashboard: "Dashboard",
+    navFlashcards: "Fleş-kartlar",
+    loadingMsg: "Ussat siz üçin iň gyzykly hekaýany oýlanýar...",
+    errorMsg: "Bagyşlaň, ýalňyşlyk ýüze çykdy.",
+    quotaError: "Limit gutardy. Haýyş edýäris, birneme soňra gaýtadan synanyşyň.",
+    dictationStart: "Gepleň...",
+    dictationError: "Eşidip bilmedim.",
+    feedbackBtn: "Teklipler",
   }
 };
 
@@ -206,6 +223,7 @@ const App: React.FC = () => {
     { id: Language.TAJIK, label: '🇹🇯 Tajik' },
     { id: Language.KYRGYZ, label: '🇰🇬 Kyrgyz' },
     { id: Language.RUSSIAN, label: '🇷🇺 Russian' },
+    { id: Language.TURKMEN, label: '🇹🇲 Türkmen' },
   ];
 
   return (
