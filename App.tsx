@@ -7,6 +7,7 @@ import { VoiceMode } from './components/VoiceMode';
 import { Dashboard } from './components/Dashboard';
 import { Flashcards } from './components/Flashcards';
 import { FeedbackModal } from './components/FeedbackModal';
+import AboutSection from './components/AboutSection';
 
 const gemini = new GeminiService();
 
@@ -16,6 +17,7 @@ const TRANSLATIONS: Record<Language, any> = {
     subtitle: "Har bir so'zda bitta hikoya bor.",
     desc: "Ingliz so'zlarini mnemonika orqali oson o'rganing.",
     searchPlaceholder: "Masalan: 'Ambitious' yoki 'Relinquish'",
+    inputPlaceholder: "So'zni kiriting...",
     btnAnalyze: "Tahlil",
     btnLive: "Ovozli Yordamchi",
     navHome: "Asosiy",
@@ -27,12 +29,22 @@ const TRANSLATIONS: Record<Language, any> = {
     dictationStart: "Gapiring...",
     dictationError: "Eshita olmadim.",
     feedbackBtn: "Takliflar",
+    howItWorksTitle: "Qanday ishlaydi?",
+    howItWorksStep1: "So'zni kiriting",
+    howItWorksStep1Desc: "O'rganmoqchi bo'lgan inglizcha so'zni yozing.",
+    howItWorksStep2: "Hikoyani ko'ring",
+    howItWorksStep2Desc: "AI siz uchun maxsus mnemonik hikoya va rasm yaratadi.",
+    howItWorksStep3: "Eslab qoling",
+    howItWorksStep3Desc: "Vizualizatsiya orqali so'zni bir umrga eslab qoling.",
+    howItWorksMethodTitle: "MnemoniX Metodi",
+    howItWorksMethodDesc: "Bizning miyamiz mavhum ro'yxatlarni emas, balki hikoyalar va tasvirlarni eslab qolish uchun yaratilgan. Yorqin, qiziqarli va ba'zan g'alati assotsiatsiyalar yaratish orqali biz 'unutish egri chizig'ini' chetlab o'tamiz va ma'lumotni to'g'ridan-to'g'ri uzoq muddatli xotiraga o'tkazamiz.",
   },
   [Language.KAZAKH]: {
     title: "MnemoniX",
     subtitle: "Әр сөзде бір хикая бар.",
     desc: "Ағылшын сөздерін мнемоника арқылы оңай үйреніңіз.",
     searchPlaceholder: "Мысалы: 'Ambitious' немесе 'Relinquish'",
+    inputPlaceholder: "Сөзді енгізіңіз...",
     btnAnalyze: "Талдау",
     btnLive: "Дауыстық Көмекші",
     navHome: "Басты",
@@ -44,12 +56,22 @@ const TRANSLATIONS: Record<Language, any> = {
     dictationStart: "Сөйлеңіз...",
     dictationError: "Ести алмадым.",
     feedbackBtn: "Ұсыныстар",
+    howItWorksTitle: "Бұл қалай жұмыс істейді?",
+    howItWorksStep1: "Сөзді енгізіңіз",
+    howItWorksStep1Desc: "Үйренгіңіз келетін ағылшын сөзін жазыңыз.",
+    howItWorksStep2: "Хикаяны көріңіз",
+    howItWorksStep2Desc: "AI сіз үшін арнайы мнемоникалық хикая мен сурет жасайды.",
+    howItWorksStep3: "Есте сақтаңыз",
+    howItWorksStep3Desc: "Визуализация арқылы сөзді мәңгілікке есте сақтаңыз.",
+    howItWorksMethodTitle: "MnemoniX әдісі",
+    howItWorksMethodDesc: "Біздің миымыз дерексіз тізімдерді емес, хикаялар мен бейнелерді есте сақтауға арналған. Жарқын, қызықты және кейде оғаш ассоциациялар құру арқылы біз 'ұмыту қисығын' айналып өтіп, ақпаратты тікелей ұзақ мерзімді жадыға өткіземіз.",
   },
   [Language.TAJIK]: {
     title: "MnemoniX",
     subtitle: "Дар ҳар як калима як қисса ҳаст.",
     desc: "Калимаҳои англисиро бо ёрии мнемоника осон омӯзед.",
     searchPlaceholder: "Масалан: 'Ambitious' ё 'Relinquish'",
+    inputPlaceholder: "Калимаро ворид кунед...",
     btnAnalyze: "Таҳлил",
     btnLive: "Ёрдамчии Овозӣ",
     navHome: "Асосӣ",
@@ -61,12 +83,22 @@ const TRANSLATIONS: Record<Language, any> = {
     dictationStart: "Гӯед...",
     dictationError: "Нашунидам.",
     feedbackBtn: "Пешниҳодҳо",
+    howItWorksTitle: "Чӣ тавр кор мекунад?",
+    howItWorksStep1: "Калимаро ворид кунед",
+    howItWorksStep1Desc: "Калимаи англисиеро, ки мехоҳед омӯзед, нависед.",
+    howItWorksStep2: "Қиссаро бинед",
+    howItWorksStep2Desc: "AI барои шумо қиссаи мнемоникӣ ва расми махсус месозад.",
+    howItWorksStep3: "Дар хотир гиред",
+    howItWorksStep3Desc: "Бо ёрии визуализатсия калимаро барои ҳамеша дар хотир нигоҳ доред.",
+    howItWorksMethodTitle: "Методи MnemoniX",
+    howItWorksMethodDesc: "Мағзи мо барои дар хотир нигоҳ доштани рӯйхатҳои абстрактӣ не, балки қиссаҳо ва тасвирҳо сохта шудааст. Бо сохтани ассотсиатсияҳои равшан, ҷолиб ва баъзан аҷиб, мо 'хати фаромӯширо' давр мезанем ва маълумотро мустақиман ба хотираи дарозмуддат интиқол медиҳем.",
   },
   [Language.KYRGYZ]: {
     title: "MnemoniX",
     subtitle: "Ар бир сөздө бир окуя бар.",
     desc: "Англис сөздөрүн мнемоника аркылуу оңай үйренүңүз.",
     searchPlaceholder: "Мисалы: 'Ambitious' же 'Relinquish'",
+    inputPlaceholder: "Сөздү киргизиңиз...",
     btnAnalyze: "Талдоо",
     btnLive: "Үн Жардамчысы",
     navHome: "Башкы",
@@ -78,12 +110,22 @@ const TRANSLATIONS: Record<Language, any> = {
     dictationStart: "Сүйлөңүз...",
     dictationError: "Уга алган жокмун.",
     feedbackBtn: "Сунуштар",
+    howItWorksTitle: "Кандай иштейт?",
+    howItWorksStep1: "Сөздү киргизиңиз",
+    howItWorksStep1Desc: "Үйрөнгүңүз келген англис сөзүн жазыңыз.",
+    howItWorksStep2: "Окуяны көрүңүз",
+    howItWorksStep2Desc: "AI сиз үчүн атайын мнемоникалык окуя жана сүрөт жаратат.",
+    howItWorksStep3: "Эстеп калыңыз",
+    howItWorksStep3Desc: "Визуализация аркылы сөздү өмүр бою эстеп калыңыз.",
+    howItWorksMethodTitle: "MnemoniX методу",
+    howItWorksMethodDesc: "Биздин мээбиз абстракттуу тизмелерди эмес, окуяларды жана образдарды эстеп калууга ылайыкташкан. Жаркын, кызыктуу жана кээде таң калыштуу ассоциацияларды түзүү менен биз 'унутуу ийри сызыгын' айланып өтүп, маалыматты түздөн-түз узак мөөнөттүү эс тутумга өткөрөбүз.",
   },
   [Language.RUSSIAN]: {
     title: "MnemoniX",
     subtitle: "В каждом слове есть история.",
     desc: "Учите английские слова легко с помощью мнемоники.",
     searchPlaceholder: "Например: 'Ambitious' или 'Relinquish'",
+    inputPlaceholder: "Введите слово...",
     btnAnalyze: "Анализ",
     btnLive: "Голосовой Помощник",
     navHome: "Главная",
@@ -95,12 +137,22 @@ const TRANSLATIONS: Record<Language, any> = {
     dictationStart: "Говорите...",
     dictationError: "Не удалось распознать.",
     feedbackBtn: "Предложения",
+    howItWorksTitle: "Как это работает?",
+    howItWorksStep1: "Введите слово",
+    howItWorksStep1Desc: "Напишите английское слово, которое хотите выучить.",
+    howItWorksStep2: "Посмотрите историю",
+    howItWorksStep2Desc: "AI создаст для вас уникальную мнемоническую историю и образ.",
+    howItWorksStep3: "Запомните",
+    howItWorksStep3Desc: "С помощью визуализации запомните слово навсегда.",
+    howItWorksMethodTitle: "Метод MnemoniX",
+    howItWorksMethodDesc: "Наш мозг устроен так, чтобы запоминать истории и образы, а не абстрактные списки. Создавая яркие, забавные, а иногда и странные ассоциации, мы обходим 'кривую забывания' и переносим информацию напрямую в долгосрочную память.",
   },
   [Language.TURKMEN]: {
     title: "MnemoniX",
     subtitle: "Her sözde bir hekaýa bar.",
     desc: "Iňlis sözlerini mnemonika arkaly aňsat öwreniň.",
     searchPlaceholder: "Meselem: 'Ambitious' ýa-da 'Relinquish'",
+    inputPlaceholder: "Sözi giriziň...",
     btnAnalyze: "Analiz",
     btnLive: "Sesli Kömekçi",
     navHome: "Baş sahypa",
@@ -112,7 +164,16 @@ const TRANSLATIONS: Record<Language, any> = {
     dictationStart: "Gepleň...",
     dictationError: "Eşidip bilmedim.",
     feedbackBtn: "Teklipler",
-  }
+    howItWorksTitle: "Bu nähili işleýär?",
+    howItWorksStep1: "Sözi giriziň",
+    howItWorksStep1Desc: "Öwrenmek isleýän iňlis söziňizi ýazyň.",
+    howItWorksStep2: "Hekaýany görüň",
+    howItWorksStep2Desc: "AI size ýörite mnemonik hekaýa we surat döreder.",
+    howItWorksStep3: "Ýatda saklaň",
+    howItWorksStep3Desc: "Wizuallaşdyrmak arkaly sözi ebedilik ýatda saklaň.",
+    howItWorksMethodTitle: "MnemoniX usuly",
+    howItWorksMethodDesc: "Biziň beýnimiz abstrakt sanawlary däl-de, hekaýalary we şekilleri ýatda saklamak üçin döredilendir. Açyk, gyzykly we käwagt geň assosiasiýalary döretmek bilen, biz 'ýatdan çykarmak egriligini' aýlanyp geçýäris we maglumaty göni uzak mehletli ýatda saklaýarys.",
+  },
 };
 
 const App: React.FC = () => {
@@ -329,60 +390,70 @@ const App: React.FC = () => {
           <>
             <section className={`transition-all duration-700 transform ${state === AppState.IDLE ? 'mt-16 scale-100' : 'mt-0 scale-95'}`}>
               <div className="max-w-2xl mx-auto text-center space-y-6">
-                {state === AppState.IDLE && (
-                  <div className="space-y-4 animate-fadeIn">
-                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 dark:text-white leading-tight px-4">
+                <div className="space-y-8">
+                  {state === AppState.IDLE && (
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 dark:text-white leading-tight px-4 animate-fadeIn">
                       {t.subtitle.split(' ').map((w: string, i: number) => 
                         i === t.subtitle.split(' ').length - 1 
                         ? <span key={i} className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">{w} </span> 
                         : w + ' '
                       )}
                     </h2>
-                    <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg px-6">{t.desc}</p>
-                  </div>
-                )}
-                
-                <form onSubmit={handleSearch} className="relative group max-w-2xl mx-auto px-4">
-                  <div className="relative">
-                    <input 
-                      type="text" 
-                      value={word}
-                      onChange={(e) => setWord(e.target.value)}
-                      placeholder={isDictating ? t.dictationStart : t.searchPlaceholder}
-                      className={`w-full px-6 sm:px-8 py-5 sm:py-6 pr-32 sm:pr-44 rounded-[1.5rem] sm:rounded-[2rem] bg-white dark:bg-slate-900 border-2 transition-all outline-none text-lg sm:text-xl text-gray-900 dark:text-white shadow-xl placeholder:text-gray-400 dark:placeholder:text-gray-600 ${isDictating ? 'border-indigo-400 ring-4 ring-indigo-100 dark:ring-indigo-900/30' : 'border-gray-100 dark:border-slate-800 focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5'}`}
-                    />
-                    
-                    <div className="absolute right-2 sm:right-3 top-2 sm:top-3 bottom-2 sm:bottom-3 flex items-center gap-1 sm:gap-2">
-                      <button
-                        type="button"
-                        onClick={startDictation}
-                        className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl sm:rounded-2xl transition-all ${isDictating ? 'bg-red-500 text-white animate-pulse shadow-red-200' : 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 shadow-sm'}`}
-                        title="Voice Input"
-                      >
-                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                        </svg>
-                      </button>
+                  )}
 
-                      <button 
-                        type="submit"
-                        disabled={state === AppState.LOADING}
-                        className="px-4 sm:px-8 h-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white rounded-xl sm:rounded-2xl font-bold transition-all flex items-center gap-2 shadow-lg active:scale-95"
-                      >
-                        {state === AppState.LOADING ? (
-                          <div className="w-5 h-5 border-2 border-white/30 border-t-white animate-spin rounded-full"></div>
-                        ) : (
-                          <>
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            <span className="hidden sm:inline">{t.btnAnalyze}</span>
-                          </>
-                        )}
-                      </button>
+                  <form onSubmit={handleSearch} className="relative group max-w-2xl mx-auto px-4">
+                    <div className="relative">
+                      <input 
+                        type="text" 
+                        value={word}
+                        onChange={(e) => setWord(e.target.value)}
+                        placeholder={isDictating ? t.dictationStart : t.inputPlaceholder}
+                        className={`w-full px-6 sm:px-8 py-5 sm:py-6 pr-32 sm:pr-44 rounded-[1.5rem] sm:rounded-[2rem] bg-white dark:bg-slate-900 border-2 transition-all outline-none text-lg sm:text-xl text-gray-900 dark:text-white shadow-xl placeholder:text-gray-400 dark:placeholder:text-gray-600 ${isDictating ? 'border-indigo-400 ring-4 ring-indigo-100 dark:ring-indigo-900/30' : 'border-gray-100 dark:border-slate-800 focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5'}`}
+                      />
+                      
+                      <div className="absolute right-2 sm:right-3 top-2 sm:top-3 bottom-2 sm:bottom-3 flex items-center gap-1 sm:gap-2">
+                        <button
+                          type="button"
+                          onClick={startDictation}
+                          className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl sm:rounded-2xl transition-all ${isDictating ? 'bg-red-500 text-white animate-pulse shadow-red-200' : 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 shadow-sm'}`}
+                          title="Voice Input"
+                        >
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                          </svg>
+                        </button>
+
+                        <button 
+                          type="submit"
+                          disabled={state === AppState.LOADING}
+                          className="px-4 sm:px-8 h-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white rounded-xl sm:rounded-2xl font-bold transition-all flex items-center gap-2 shadow-lg active:scale-95"
+                        >
+                          {state === AppState.LOADING ? (
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white animate-spin rounded-full"></div>
+                          ) : (
+                            <>
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                              </svg>
+                              <span className="hidden sm:inline">{t.btnAnalyze}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </form>
+                  </form>
+
+                  {state === AppState.IDLE && (
+                    <div className="space-y-4 animate-fadeIn">
+                      <p className="text-gray-400 dark:text-gray-500 text-sm sm:text-base font-medium italic">{t.searchPlaceholder}</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg px-6">{t.desc}</p>
+                    </div>
+                  )}
+                </div>
+
+                {state === AppState.IDLE && (
+                  <AboutSection t={t} />
+                )}
               </div>
             </section>
 
