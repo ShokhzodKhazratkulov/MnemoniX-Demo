@@ -143,27 +143,27 @@ export const MnemonicCard: React.FC<Props> = ({ data, imageUrl, language }) => {
   };
 
   return (
-    <div className={`transition-all duration-700 transform ${showContent ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} max-w-4xl mx-auto space-y-8`}>
-      <div className="text-center space-y-4">
-        <div className="flex flex-col items-center gap-4">
-          <div className="flex items-center justify-center gap-4">
-            <h1 className="text-6xl font-black text-indigo-600 tracking-tight">{safeData.word}</h1>
+    <div className={`transition-all duration-700 transform ${showContent ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} max-w-4xl mx-auto space-y-6 sm:space-y-8 px-4`}>
+      <div className="text-center space-y-3 sm:space-y-4">
+        <div className="flex flex-col items-center gap-3 sm:gap-4">
+          <div className="flex items-center justify-center gap-3 sm:gap-4">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-indigo-600 tracking-tight break-all">{safeData.word}</h1>
             <button 
               onClick={handlePlayAudio}
               disabled={isAudioLoading}
-              className={`w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-lg ${
+              className={`w-14 h-14 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-all shadow-lg ${
                 isPlaying ? 'bg-red-500 text-white animate-pulse' : 'bg-indigo-600 text-white hover:bg-indigo-700'
-              } disabled:bg-gray-300 relative`}
+              } disabled:bg-gray-300 relative shrink-0`}
               title="Listen to pronunciation"
             >
               {isAudioLoading ? (
-                <div className="w-8 h-8 border-4 border-white/30 border-t-white animate-spin rounded-full" /> 
+                <div className="w-6 h-6 sm:w-8 sm:h-8 border-4 border-white/30 border-t-white animate-spin rounded-full" /> 
               ) : isPlaying ? (
-                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M5 4h3v12H5V4zm7 0h3v12h-3V4z"/>
                 </svg>
               ) : (
-                <svg className="w-10 h-10 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8 sm:w-10 sm:h-10 ml-1" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M7 4l10 8-10 8z" />
                 </svg>
               )}
@@ -171,45 +171,45 @@ export const MnemonicCard: React.FC<Props> = ({ data, imageUrl, language }) => {
           </div>
           {audioError && <p className="text-xs font-bold text-red-500 animate-bounce">{audioError}</p>}
         </div>
-        <p className="text-xl text-gray-500 font-mono">[{safeData.transcription}] — {safeData.meaning}</p>
-        <div className="inline-block px-4 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold">{safeData.morphology}</div>
+        <p className="text-lg sm:text-xl text-gray-500 dark:text-gray-400 font-mono break-words">[{safeData.transcription}] — {safeData.meaning}</p>
+        <div className="inline-block px-4 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full text-xs sm:text-sm font-semibold">{safeData.morphology}</div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        <div className="relative bg-white rounded-3xl overflow-hidden shadow-2xl border border-gray-100">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
+        <div className="relative bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-gray-100 dark:border-slate-800">
           <img 
             src={imageUrl || 'https://placehold.co/600x600?text=Imagining...'} 
             alt={safeData.word} 
-            className="w-full h-auto object-cover min-h-[300px]" 
+            className="w-full h-auto object-cover min-h-[250px] sm:min-h-[300px]" 
           />
           {timer > 0 && (
-            <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-white p-6 text-center">
-              <p className="text-lg font-bold mb-2">Visualize this for</p>
-              <p className="text-6xl font-black">{timer}</p>
-              <p className="mt-4 text-sm opacity-80">Close your eyes and see the scene...</p>
+            <div className="absolute inset-0 bg-black/70 dark:bg-black/80 flex flex-col items-center justify-center text-white p-4 sm:p-6 text-center">
+              <p className="text-base sm:text-lg font-bold mb-1 sm:mb-2">Visualize this for</p>
+              <p className="text-5xl sm:text-6xl font-black">{timer}</p>
+              <p className="mt-3 sm:mt-4 text-xs opacity-80">Close your eyes and see the scene...</p>
             </div>
           )}
         </div>
 
-        <div className="space-y-6">
-          <div className="bg-white p-6 rounded-2xl shadow-lg border-l-8 border-indigo-500 transition-transform hover:scale-[1.02]">
-            <h3 className="text-indigo-600 font-bold uppercase text-[10px] tracking-widest mb-2 opacity-60">Imagination (Visual)</h3>
-            <p className="text-gray-800 text-lg leading-relaxed">{safeData.imagination}</p>
+        <div className="space-y-4 sm:space-y-6">
+          <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border-l-8 border-indigo-500 transition-transform hover:scale-[1.02]">
+            <h3 className="text-indigo-600 dark:text-indigo-400 font-bold uppercase text-[9px] sm:text-[10px] tracking-widest mb-1 sm:mb-2 opacity-60">Imagination (Visual)</h3>
+            <p className="text-gray-800 dark:text-gray-200 text-base sm:text-lg leading-relaxed">{safeData.imagination}</p>
           </div>
-          <div className="bg-white p-6 rounded-2xl shadow-lg border-l-8 border-orange-400 transition-transform hover:scale-[1.02]">
-            <h3 className="text-orange-600 font-bold uppercase text-[10px] tracking-widest mb-2 opacity-60">Phonetic Link (Sound)</h3>
-            <p className="text-gray-800 text-lg font-medium italic">{safeData.phoneticLink}</p>
+          <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border-l-8 border-orange-400 transition-transform hover:scale-[1.02]">
+            <h3 className="text-orange-600 dark:text-orange-400 font-bold uppercase text-[9px] sm:text-[10px] tracking-widest mb-1 sm:mb-2 opacity-60">Phonetic Link (Sound)</h3>
+            <p className="text-gray-800 dark:text-gray-200 text-base sm:text-lg font-medium italic">{safeData.phoneticLink}</p>
           </div>
-          <div className="bg-indigo-600 p-6 rounded-2xl shadow-xl text-white transition-transform hover:scale-[1.02]">
-             <h3 className="text-indigo-200 font-bold uppercase text-[10px] tracking-widest mb-2 opacity-80">Mnemonic Key</h3>
-            <p className="text-xl font-semibold italic">"{safeData.connectorSentence}"</p>
+          <div className="bg-indigo-600 p-5 sm:p-6 rounded-xl sm:rounded-2xl shadow-xl text-white transition-transform hover:scale-[1.02]">
+             <h3 className="text-indigo-200 font-bold uppercase text-[9px] sm:text-[10px] tracking-widest mb-1 sm:mb-2 opacity-80">Mnemonic Key</h3>
+            <p className="text-lg sm:text-xl font-semibold italic">"{safeData.connectorSentence}"</p>
           </div>
-          <div className="bg-gray-100 p-6 rounded-2xl border border-gray-200">
-             <h3 className="text-gray-400 font-bold uppercase text-[10px] tracking-widest mb-4">Examples</h3>
-             <ul className="space-y-3">
+          <div className="bg-gray-100 dark:bg-slate-800 p-5 sm:p-6 rounded-xl sm:rounded-2xl border border-gray-200 dark:border-slate-700">
+             <h3 className="text-gray-400 dark:text-gray-500 font-bold uppercase text-[9px] sm:text-[10px] tracking-widest mb-3 sm:mb-4">Examples</h3>
+             <ul className="space-y-2 sm:space-y-3">
                {safeData.examples.map((ex, idx) => (
-                 <li key={idx} className="text-gray-700 italic flex gap-3">
-                   <span className="text-indigo-400 font-bold">•</span>
+                 <li key={idx} className="text-gray-700 dark:text-gray-300 italic flex gap-2 sm:gap-3 text-sm sm:text-base">
+                   <span className="text-indigo-400 font-bold shrink-0">•</span>
                    {ex}
                  </li>
                ))}

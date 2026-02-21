@@ -49,8 +49,8 @@ export const Flashcards: React.FC<Props> = ({ savedMnemonics, language }) => {
       <div className="max-w-2xl mx-auto py-24 text-center space-y-6">
         <div className="text-8xl float-anim">📭</div>
         <div className="space-y-2">
-          <p className="text-2xl font-black text-gray-800">{t.empty}</p>
-          <p className="text-gray-400">Siz o'rgangan so'zlar avtomatik tarzda shu yerda paydo bo'ladi.</p>
+          <p className="text-2xl font-black text-gray-800 dark:text-white">{t.empty}</p>
+          <p className="text-gray-400 dark:text-gray-500">Siz o'rgangan so'zlar avtomatik tarzda shu yerda paydo bo'ladi.</p>
         </div>
       </div>
     );
@@ -58,26 +58,26 @@ export const Flashcards: React.FC<Props> = ({ savedMnemonics, language }) => {
 
   if (!isStarted) {
     return (
-      <div className="max-w-2xl mx-auto animate-fadeIn mt-12">
-        <div className="bg-white p-12 rounded-[3rem] shadow-2xl border border-gray-100 text-center space-y-10">
-          <div className="space-y-3">
-            <h2 className="text-4xl font-black text-gray-900 tracking-tight">{t.title}</h2>
-            <p className="text-gray-500 font-medium">{t.range}</p>
+      <div className="max-w-2xl mx-auto animate-fadeIn mt-8 sm:mt-12 px-4">
+        <div className="bg-white dark:bg-slate-900 p-8 sm:p-12 rounded-[2rem] sm:rounded-[3rem] shadow-2xl border border-gray-100 dark:border-slate-800 text-center space-y-8 sm:space-y-10">
+          <div className="space-y-2 sm:space-y-3">
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white tracking-tight">{t.title}</h2>
+            <p className="text-gray-500 dark:text-gray-400 font-medium text-sm sm:text-base">{t.range}</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div className="text-left space-y-1">
-              <span className="text-[10px] font-black uppercase text-gray-300 ml-4">{t.from}</span>
-              <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="date-input w-full px-8 py-5 bg-gray-50 border-2 border-transparent rounded-3xl outline-none focus:border-indigo-500 font-black text-black transition-all" />
+              <span className="text-[9px] sm:text-[10px] font-black uppercase text-gray-300 dark:text-gray-600 ml-4">{t.from}</span>
+              <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="date-input w-full px-6 sm:px-8 py-4 sm:py-5 bg-gray-50 dark:bg-slate-800 border-2 border-transparent rounded-2xl sm:rounded-3xl outline-none focus:border-indigo-500 font-black text-black dark:text-white transition-all text-sm sm:text-base" />
             </div>
             <div className="text-left space-y-1">
-              <span className="text-[10px] font-black uppercase text-gray-300 ml-4">{t.to}</span>
-              <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="date-input w-full px-8 py-5 bg-gray-50 border-2 border-transparent rounded-3xl outline-none focus:border-indigo-500 font-black text-black transition-all" />
+              <span className="text-[9px] sm:text-[10px] font-black uppercase text-gray-300 dark:text-gray-600 ml-4">{t.to}</span>
+              <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="date-input w-full px-6 sm:px-8 py-4 sm:py-5 bg-gray-50 dark:bg-slate-800 border-2 border-transparent rounded-2xl sm:rounded-3xl outline-none focus:border-indigo-500 font-black text-black dark:text-white transition-all text-sm sm:text-base" />
             </div>
           </div>
           <button 
             disabled={filtered.length === 0}
             onClick={() => setIsStarted(true)}
-            className="w-full py-6 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-200 text-white rounded-3xl font-black text-2xl shadow-2xl shadow-indigo-200 transition-all active:scale-95 transform"
+            className="w-full py-5 sm:py-6 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-200 dark:disabled:bg-slate-800 text-white rounded-2xl sm:rounded-3xl font-black text-xl sm:text-2xl shadow-2xl shadow-indigo-200 dark:shadow-none transition-all active:scale-95 transform"
           >
             {t.start} <span className="opacity-50 ml-2">({filtered.length})</span>
           </button>
@@ -91,7 +91,7 @@ export const Flashcards: React.FC<Props> = ({ savedMnemonics, language }) => {
   return (
     <div className="max-w-xl mx-auto space-y-8 animate-fadeIn mt-4">
       <div className="text-center">
-         <p className="text-sm font-bold text-gray-400 animate-pulse">{t.hint}</p>
+         <p className="text-sm font-bold text-gray-400 dark:text-gray-600 animate-pulse">{t.hint}</p>
       </div>
       
       <div 
@@ -101,57 +101,57 @@ export const Flashcards: React.FC<Props> = ({ savedMnemonics, language }) => {
         <div className={`relative w-full h-full transition-transform duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
           
           {/* Front Side */}
-          <div className="absolute inset-0 backface-hidden bg-white rounded-[3rem] overflow-hidden shadow-2xl border-8 border-white">
+          <div className="absolute inset-0 backface-hidden bg-white dark:bg-slate-900 rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-2xl border-4 sm:border-8 border-white dark:border-slate-800">
             <img src={current.imageUrl} className="w-full h-full object-cover" alt="Flashcard Front" />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-6 md:p-10 pt-20">
-              <h3 className="text-4xl sm:text-6xl font-black text-white tracking-tighter drop-shadow-2xl break-all">{current.word}</h3>
-              <p className="text-white/70 font-mono mt-2 break-words">[{current.data.transcription}]</p>
+              <h3 className="text-3xl sm:text-4xl md:text-6xl font-black text-white tracking-tighter drop-shadow-2xl break-all">{current.word}</h3>
+              <p className="text-white/70 font-mono mt-1 sm:mt-2 break-words text-xs sm:text-base">[{current.data.transcription}]</p>
             </div>
             
-            <div className="absolute top-8 left-8 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-xl text-black text-[10px] font-black tracking-widest border border-indigo-100 shadow-xl">
+            <div className="absolute top-4 left-4 sm:top-8 sm:left-8 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl px-3 sm:px-4 py-1 sm:py-2 rounded-lg sm:rounded-xl text-black dark:text-white text-[8px] sm:text-[10px] font-black tracking-widest border border-indigo-100 dark:border-slate-700 shadow-xl">
               {new Date(current.timestamp).toLocaleDateString()}
             </div>
 
-            <div className="absolute top-8 right-8 bg-indigo-600/80 backdrop-blur-xl px-5 py-2 rounded-full text-white text-xs font-black tracking-widest border border-white/20">
+            <div className="absolute top-4 right-4 sm:top-8 sm:right-8 bg-indigo-600/80 backdrop-blur-xl px-3 sm:px-5 py-1 sm:py-2 rounded-full text-white text-[10px] sm:text-xs font-black tracking-widest border border-white/20">
               {currentIndex + 1} / {filtered.length}
             </div>
           </div>
 
           {/* Back Side */}
-          <div className="absolute inset-0 backface-hidden rotate-y-180 bg-indigo-600 rounded-[3rem] pt-12 px-6 pb-6 md:pt-16 md:px-10 md:pb-10 flex flex-col justify-start text-center shadow-2xl border-8 border-indigo-500 overflow-y-auto overflow-x-hidden">
-            <div className="space-y-6 md:space-y-8">
-              <div className="space-y-2">
-                <span className="text-indigo-200 text-[10px] font-black uppercase tracking-[0.2em]">Word</span>
-                <h3 className="text-3xl sm:text-5xl font-black text-white tracking-tighter break-all">{current.word}</h3>
+          <div className="absolute inset-0 backface-hidden rotate-y-180 bg-indigo-600 rounded-[2rem] sm:rounded-[3rem] pt-10 px-6 pb-6 md:pt-16 md:px-10 md:pb-10 flex flex-col justify-start text-center shadow-2xl border-4 sm:border-8 border-indigo-500 overflow-y-auto overflow-x-hidden">
+            <div className="space-y-4 sm:space-y-8">
+              <div className="space-y-1 sm:space-y-2">
+                <span className="text-indigo-200 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em]">Word</span>
+                <h3 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tighter break-all">{current.word}</h3>
               </div>
               
-              <div className="space-y-2">
-                <span className="text-indigo-200 text-[10px] font-black uppercase tracking-[0.2em]">Meaning</span>
-                <p className="text-white font-black text-2xl sm:text-3xl break-words">{current.data.meaning}</p>
+              <div className="space-y-1 sm:space-y-2">
+                <span className="text-indigo-200 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em]">Meaning</span>
+                <p className="text-white font-black text-xl sm:text-2xl md:text-3xl break-words">{current.data.meaning}</p>
               </div>
 
-              <div className="space-y-3 bg-white/10 rounded-3xl p-4 md:p-6 backdrop-blur-md border border-white/10">
-                <span className="text-indigo-200 text-[10px] font-black uppercase tracking-[0.2em]">Imagination</span>
-                <p className="text-white/90 text-lg italic leading-relaxed break-words">{current.data.imagination}</p>
+              <div className="space-y-2 sm:space-y-3 bg-white/10 rounded-2xl sm:rounded-3xl p-4 md:p-6 backdrop-blur-md border border-white/10">
+                <span className="text-indigo-200 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em]">Imagination</span>
+                <p className="text-white/90 text-sm sm:text-base md:text-lg italic leading-relaxed break-words">{current.data.imagination}</p>
               </div>
 
-              <div className="space-y-2">
-                 <span className="text-indigo-200 text-[10px] font-black uppercase tracking-[0.2em]">Mnemonic Link</span>
-                 <p className="text-indigo-100 font-bold break-words">{current.data.phoneticLink}</p>
+              <div className="space-y-1 sm:space-y-2">
+                 <span className="text-indigo-200 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em]">Mnemonic Link</span>
+                 <p className="text-indigo-100 font-bold break-words text-sm sm:text-base">{current.data.phoneticLink}</p>
               </div>
             </div>
 
-            <div className="absolute top-8 right-8 bg-white/20 backdrop-blur-xl px-5 py-2 rounded-full text-white text-xs font-black tracking-widest border border-white/10">
+            <div className="absolute top-4 right-4 sm:top-8 sm:right-8 bg-white/20 backdrop-blur-xl px-3 sm:px-5 py-1 sm:py-2 rounded-full text-white text-[10px] sm:text-xs font-black tracking-widest border border-white/10">
               {currentIndex + 1} / {filtered.length}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex justify-between items-center gap-6">
+      <div className="flex justify-between items-center gap-4 sm:gap-6">
         <button 
           onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
-          className="flex-1 py-5 bg-white text-gray-400 hover:text-indigo-600 rounded-3xl font-black shadow-sm border border-gray-100 transition-all disabled:opacity-30 disabled:hover:text-gray-400 active:scale-95"
+          className="flex-1 py-4 sm:py-5 bg-white dark:bg-slate-900 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl sm:rounded-3xl font-black shadow-sm border border-gray-100 dark:border-slate-800 transition-all disabled:opacity-30 disabled:hover:text-gray-400 active:scale-95 text-sm sm:text-base"
           disabled={currentIndex === 0}
         >
           {t.prev}
@@ -165,7 +165,7 @@ export const Flashcards: React.FC<Props> = ({ savedMnemonics, language }) => {
               setCurrentIndex(0);
             }
           }}
-          className="flex-[2] py-5 bg-indigo-600 text-white rounded-3xl font-black shadow-2xl shadow-indigo-200 transition-all active:scale-95 text-xl"
+          className="flex-[2] py-4 sm:py-5 bg-indigo-600 text-white rounded-2xl sm:rounded-3xl font-black shadow-2xl shadow-indigo-200 dark:shadow-none transition-all active:scale-95 text-lg sm:text-xl"
         >
           {currentIndex === filtered.length - 1 ? t.finish : t.next}
         </button>
@@ -189,8 +189,14 @@ export const Flashcards: React.FC<Props> = ({ savedMnemonics, language }) => {
           cursor: pointer;
           opacity: 1;
         }
+        .dark .date-input::-webkit-calendar-picker-indicator {
+          filter: invert(1);
+        }
         .date-input {
           color-scheme: light;
+        }
+        .dark .date-input {
+          color-scheme: dark;
         }
       `}</style>
     </div>

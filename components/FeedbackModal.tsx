@@ -35,31 +35,31 @@ export const FeedbackModal: React.FC<Props> = ({ onClose, language, receiverEmai
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-md bg-white rounded-[2.5rem] p-10 shadow-2xl space-y-8 animate-slideUp">
+      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-[2.5rem] p-10 shadow-2xl space-y-8 animate-slideUp border border-white/10 dark:border-slate-800">
         <div className="space-y-2 text-center">
-          <h2 className="text-3xl font-black text-gray-900">{t.title}</h2>
-          <p className="text-gray-500 font-medium">{t.desc}</p>
+          <h2 className="text-3xl font-black text-gray-900 dark:text-white">{t.title}</h2>
+          <p className="text-gray-500 dark:text-gray-400 font-medium">{t.desc}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-gray-400 ml-4 tracking-widest">{t.labelName}</label>
+            <label className="text-[10px] font-black uppercase text-gray-400 dark:text-gray-500 ml-4 tracking-widest">{t.labelName}</label>
             <input 
               type="text" 
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-indigo-500 rounded-2xl outline-none font-bold text-gray-800 transition-all"
+              className="w-full px-6 py-4 bg-gray-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 rounded-2xl outline-none font-bold text-gray-800 dark:text-gray-200 transition-all"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-gray-400 ml-4 tracking-widest">{t.labelMsg}</label>
+            <label className="text-[10px] font-black uppercase text-gray-400 dark:text-gray-500 ml-4 tracking-widest">{t.labelMsg}</label>
             <textarea 
               required
               rows={4}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-indigo-500 rounded-2xl outline-none font-bold text-gray-800 transition-all resize-none"
+              className="w-full px-6 py-4 bg-gray-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 rounded-2xl outline-none font-bold text-gray-800 dark:text-gray-200 transition-all resize-none"
             ></textarea>
           </div>
 
@@ -67,13 +67,13 @@ export const FeedbackModal: React.FC<Props> = ({ onClose, language, receiverEmai
             <button 
               type="button"
               onClick={onClose}
-              className="flex-1 py-4 bg-gray-100 text-gray-500 rounded-2xl font-black hover:bg-gray-200 transition-colors"
+              className="flex-1 py-4 bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400 rounded-2xl font-black hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
             >
               {t.btnCancel}
             </button>
             <button 
               type="submit"
-              className="flex-[2] py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-colors active:scale-95"
+              className="flex-[2] py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-100 dark:shadow-none hover:bg-indigo-700 transition-colors active:scale-95"
             >
               {t.btnSend}
             </button>
