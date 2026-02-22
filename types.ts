@@ -19,6 +19,7 @@ export interface MnemonicResponse {
   examples: string[];
   synonyms: string[];
   imagePrompt: string;
+  level: string;
   audioUrl?: string;
 }
 

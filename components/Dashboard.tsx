@@ -1,6 +1,17 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { SavedMnemonic, Language } from '../types';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  AreaChart,
+  Area
+} from 'recharts';
 
 interface Props {
   savedMnemonics: SavedMnemonic[];
@@ -9,130 +20,209 @@ interface Props {
 }
 
 const DASH_T: Record<Language, any> = {
-  [Language.UZBEK]: { title: "Faoliyat", stats: "O'rganish statistikasi", total: "Jami o'rganilgan", range: "Sana oralig'i", noData: "Ma'lumot topilmadi", from: "Dan", to: "Gacha" },
-  [Language.KAZAKH]: { title: "Белсенділік", stats: "Оқу статистикасы", total: "Жалпы үйренілген", range: "Күн ауқымы", noData: "Мәлімет табылмады", from: "Бастап", to: "Дейін" },
-  [Language.TAJIK]: { title: "Фаолият", stats: "Омори омӯзиш", total: "Ҳамагӣ омӯхташуда", range: "Диапазони сана", noData: "Маълумот ёфт нашуд", from: "Аз", to: "То" },
-  [Language.KYRGYZ]: { title: "Активдүүлүк", stats: "Окуу статистикасы", total: "Жалпы үйрөнүлгөн", range: "Күн аралыгы", noData: "Маалымат табылган жок", from: "Дан", to: "Чейин" },
-  [Language.RUSSIAN]: { title: "Активность", stats: "Статистика обучения", total: "Всего выучено", range: "Диапазон дат", noData: "Данных не найдено", from: "С", to: "По" },
-  [Language.TURKMEN]: { title: "Işjeňlik", stats: "Öwreniş statistikasy", total: "Jemi öwrenilen", range: "Sene aralygy", noData: "Maglumat tapylmady", from: "Başlap", to: "Çenli" },
+  [Language.UZBEK]: { 
+    title: "Faoliyat", 
+    stats: "O'rganish statistikasi", 
+    total: "Jami O'rganilgan", 
+    today: "Bugungi hisob", 
+    average: "O'rtacha kunlik", 
+    level: "So'zlar darajasi",
+    graphTitle: "Oxirgi 7 kunlik progress",
+    noData: "Ma'lumot topilmadi"
+  },
+  [Language.KAZAKH]: { 
+    title: "Белсенділік", 
+    stats: "Оқу статистикасы", 
+    total: "Жалпы үйренілген", 
+    today: "Бүгінгі есеп", 
+    average: "Орташа күндік", 
+    level: "Сөздер деңгейі",
+    graphTitle: "Соңғы 7 күндік прогресс",
+    noData: "Мәлімет табылмады"
+  },
+  [Language.TAJIK]: { 
+    title: "Фаолият", 
+    stats: "Омори омӯзиш", 
+    total: "Ҳамагӣ омӯхташуда", 
+    today: "Ҳисоби имрӯза", 
+    average: "Миёнаи рӯзона", 
+    level: "Сатҳи калимаҳо",
+    graphTitle: "Пешрафти 7 рӯзи охир",
+    noData: "Маълумот ёфт нашуд"
+  },
+  [Language.KYRGYZ]: { 
+    title: "Активдүүлүк", 
+    stats: "Окуу статистикасы", 
+    total: "Жалпы үйрөнүлгөн", 
+    today: "Бүгүнкү эсеп", 
+    average: "Орточо күндүк", 
+    level: "Сөздөрдүн деңгээли",
+    graphTitle: "Акыркы 7 күндүк прогресс",
+    noData: "Маалымат табылган жок"
+  },
+  [Language.RUSSIAN]: { 
+    title: "Активность", 
+    stats: "Статистика обучения", 
+    total: "Всего выучено", 
+    today: "Сегодня выучено", 
+    average: "Среднее в день", 
+    level: "Уровень слов",
+    graphTitle: "Прогресс за последние 7 дней",
+    noData: "Данных не найдено"
+  },
+  [Language.TURKMEN]: { 
+    title: "Işjeňlik", 
+    stats: "Öwreniş statistikasy", 
+    total: "Jemi öwrenilen", 
+    today: "Şu günki hasap", 
+    average: "Ortaça gündelik", 
+    level: "Sözleriň derejesi",
+    graphTitle: "Soňky 7 günlük ösüş",
+    noData: "Maglumat tapylmady"
+  },
 };
 
-export const Dashboard: React.FC<Props> = ({ savedMnemonics, language, onDelete }) => {
+export const Dashboard: React.FC<Props> = ({ savedMnemonics, language }) => {
   const t = DASH_T[language];
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
 
-  const filteredData = useMemo(() => {
-    return savedMnemonics.filter(m => {
-      const ts = new Date(m.timestamp);
-      ts.setHours(0,0,0,0);
-      const from = dateFrom ? new Date(dateFrom) : null;
-      if (from) from.setHours(0,0,0,0);
-      const to = dateTo ? new Date(dateTo) : null;
-      if (to) to.setHours(23,59,59,999);
+  const stats = useMemo(() => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    
+    const todayCount = savedMnemonics.filter(m => {
+      const d = new Date(m.timestamp);
+      d.setHours(0, 0, 0, 0);
+      return d.getTime() === now.getTime();
+    }).length;
+
+    // Average daily calculation
+    const uniqueDays = new Set(savedMnemonics.map(m => {
+      const d = new Date(m.timestamp);
+      return d.toDateString();
+    })).size || 1;
+    
+    const averageDaily = (savedMnemonics.length / uniqueDays).toFixed(1);
+
+    // Level distribution
+    const levels = savedMnemonics.reduce((acc: Record<string, number>, m) => {
+      const lvl = m.data.level || 'Intermediate';
+      acc[lvl] = (acc[lvl] || 0) + 1;
+      return acc;
+    }, {});
+
+    const topLevel = Object.entries(levels).sort((a: [string, number], b: [string, number]) => b[1] - a[1])[0]?.[0] || 'Beginner';
+
+    return {
+      total: savedMnemonics.length,
+      today: todayCount,
+      average: averageDaily,
+      topLevel
+    };
+  }, [savedMnemonics]);
+
+  const graphData = useMemo(() => {
+    const data = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      d.setHours(0, 0, 0, 0);
       
-      if (from && ts < from) return false;
-      if (to && ts > to) return false;
-      return true;
-    });
-  }, [savedMnemonics, dateFrom, dateTo]);
+      const count = savedMnemonics.filter(m => {
+        const md = new Date(m.timestamp);
+        md.setHours(0, 0, 0, 0);
+        return md.getTime() === d.getTime();
+      }).length;
+
+      const label = i === 0 ? 'Today' : i === 1 ? 'Yesterday' : d.toLocaleDateString(undefined, { weekday: 'short' });
+      data.push({ name: label, count });
+    }
+    return data;
+  }, [savedMnemonics]);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-fadeIn pb-12">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 sm:gap-6 bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800">
-        <div className="space-y-1 sm:space-y-2">
-          <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white">{t.title}</h2>
-          <p className="text-gray-500 dark:text-gray-400 font-medium text-sm sm:text-base">{t.stats}</p>
+    <div className="max-w-6xl mx-auto space-y-8 animate-fadeIn pb-12 px-4">
+      {/* Header */}
+      <div className="space-y-2">
+        <h2 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white tracking-tight">{t.title}</h2>
+        <p className="text-gray-500 dark:text-gray-400 font-medium">{t.stats}</p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+        <div className="bg-indigo-600 text-white p-4 sm:p-8 rounded-2xl sm:rounded-[2rem] shadow-xl shadow-indigo-200 dark:shadow-none flex flex-col justify-center items-center text-center transform hover:scale-105 transition-transform duration-300">
+          <span className="text-3xl sm:text-5xl font-black mb-1 sm:mb-2">{stats.total}</span>
+          <span className="text-indigo-100 font-bold uppercase text-[10px] sm:text-xs tracking-widest">{t.total}</span>
         </div>
-        <div className="flex flex-wrap gap-3 sm:gap-4 w-full md:w-auto">
-          <div className="flex-1 md:flex-none space-y-1">
-            <label className="text-[9px] sm:text-[10px] font-bold uppercase text-gray-400 dark:text-gray-500 tracking-wider ml-1">{t.from}</label>
-            <input 
-              type="date" 
-              value={dateFrom} 
-              onChange={e => setDateFrom(e.target.value)} 
-              className="date-input block w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold text-black dark:text-white outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 transition-all" 
-            />
-          </div>
-          <div className="flex-1 md:flex-none space-y-1">
-            <label className="text-[9px] sm:text-[10px] font-bold uppercase text-gray-400 dark:text-gray-500 tracking-wider ml-1">{t.to}</label>
-            <input 
-              type="date" 
-              value={dateTo} 
-              onChange={e => setDateTo(e.target.value)} 
-              className="date-input block w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold text-black dark:text-white outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 transition-all" 
-            />
-          </div>
+
+        <div className="bg-white dark:bg-slate-900 p-4 sm:p-8 rounded-2xl sm:rounded-[2rem] shadow-sm border border-gray-100 dark:border-slate-800 flex flex-col justify-center items-center text-center transform hover:scale-105 transition-transform duration-300">
+          <span className="text-3xl sm:text-5xl font-black mb-1 sm:mb-2 text-gray-900 dark:text-white">{stats.today}</span>
+          <span className="text-gray-400 dark:text-gray-500 font-bold uppercase text-[10px] sm:text-xs tracking-widest">{t.today}</span>
+        </div>
+
+        <div className="bg-white dark:bg-slate-900 p-4 sm:p-8 rounded-2xl sm:rounded-[2rem] shadow-sm border border-gray-100 dark:border-slate-800 flex flex-col justify-center items-center text-center transform hover:scale-105 transition-transform duration-300">
+          <span className="text-3xl sm:text-5xl font-black mb-1 sm:mb-2 text-gray-900 dark:text-white">{stats.average}</span>
+          <span className="text-gray-400 dark:text-gray-500 font-bold uppercase text-[10px] sm:text-xs tracking-widest">{t.average}</span>
+        </div>
+
+        <div className="bg-white dark:bg-slate-900 p-4 sm:p-8 rounded-2xl sm:rounded-[2rem] shadow-sm border border-gray-100 dark:border-slate-800 flex flex-col justify-center items-center text-center transform hover:scale-105 transition-transform duration-300">
+          <span className="text-lg sm:text-2xl font-black mb-1 sm:mb-2 text-indigo-600 dark:text-indigo-400 uppercase tracking-tight">{stats.topLevel}</span>
+          <span className="text-gray-400 dark:text-gray-500 font-bold uppercase text-[10px] sm:text-xs tracking-widest">{t.level}</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6">
-        <div className="bg-indigo-600 text-white p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl flex flex-col justify-center items-center md:items-start">
-          <span className="text-4xl sm:text-5xl font-black mb-1">{filteredData.length}</span>
-          <span className="text-indigo-100 font-bold uppercase text-[9px] sm:text-[10px] tracking-widest">{t.total}</span>
-        </div>
-        
-        <div className="md:col-span-3 bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800">
-          <div className="flex flex-wrap gap-2 sm:gap-3">
-            {filteredData.length === 0 ? (
-              <div className="w-full text-center py-6 sm:py-10">
-                <p className="text-gray-400 dark:text-gray-600 italic text-sm">{t.noData}</p>
-              </div>
-            ) : (
-              filteredData.map(m => (
-                <div key={m.id} className="group relative">
-                  <div className="px-4 sm:px-5 py-2 sm:py-2.5 bg-gray-50 dark:bg-slate-800 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black text-gray-700 dark:text-gray-300 border border-gray-100 dark:border-slate-700 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all cursor-default">
-                    {m.word}
-                  </div>
-                  <button 
-                    onClick={() => onDelete(m.id)}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
+      {/* Graph Section */}
+      <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-slate-800">
+        <h3 className="text-xl font-black text-gray-900 dark:text-white mb-8 tracking-tight">{t.graphTitle}</h3>
+        <div className="h-[200px] sm:h-[250px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={graphData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <XAxis 
+                dataKey="name" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }}
+                dy={10}
+                padding={{ left: 10, right: 10 }}
+              />
+              <YAxis 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600, textAnchor: 'start' }}
+                domain={[0, 50]}
+                ticks={[0, 10, 20, 30, 40, 50]}
+                width={40}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: '#1e293b', 
+                  border: 'none', 
+                  borderRadius: '12px',
+                  color: '#fff',
+                  fontWeight: 'bold'
+                }}
+                itemStyle={{ color: '#fff' }}
+                cursor={{ stroke: '#4f46e5', strokeWidth: 2 }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="count" 
+                stroke="#4f46e5" 
+                strokeWidth={4}
+                fillOpacity={1} 
+                fill="url(#colorCount)" 
+                animationDuration={1500}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-        {filteredData.map(m => (
-          <div key={m.id} className="bg-white dark:bg-slate-900 rounded-[1.5rem] sm:rounded-[2.5rem] overflow-hidden shadow-sm border border-gray-100 dark:border-slate-800 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
-            <div className="relative h-48 sm:h-56 overflow-hidden">
-              <img src={m.imageUrl} alt={m.word} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-              <div className="absolute top-3 right-3 sm:top-4 right-4 px-2 sm:px-3 py-1 bg-white/95 dark:bg-slate-900/95 text-black dark:text-white rounded-lg text-[9px] sm:text-[10px] font-black shadow-md border border-indigo-100 dark:border-slate-700">
-                {new Date(m.timestamp).toLocaleDateString()}
-              </div>
-            </div>
-            <div className="p-6 sm:p-8">
-              <div className="flex justify-between items-center mb-1 sm:mb-2">
-                <h4 className="font-black text-indigo-600 dark:text-indigo-400 text-xl sm:text-2xl tracking-tight">{m.word}</h4>
-                <span className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-300 dark:text-gray-600">{m.language}</span>
-              </div>
-              <p className="text-gray-500 dark:text-gray-400 font-medium leading-relaxed line-clamp-2 text-sm sm:text-base">{m.data.meaning}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <style>{`
-        .date-input::-webkit-calendar-picker-indicator {
-          filter: invert(0);
-          cursor: pointer;
-          opacity: 1;
-        }
-        .dark .date-input::-webkit-calendar-picker-indicator {
-          filter: invert(1);
-        }
-        .date-input {
-          color-scheme: light;
-        }
-        .dark .date-input {
-          color-scheme: dark;
-        }
-      `}</style>
     </div>
   );
 };

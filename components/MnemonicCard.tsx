@@ -62,9 +62,14 @@ export const MnemonicCard: React.FC<Props> = ({ data, imageUrl, language }) => {
   const [showContent, setShowContent] = useState(false);
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isWordPlaying, setIsWordPlaying] = useState(false);
+  const [isWordLoading, setIsWordLoading] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const wordSourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const wordBufferCache = useRef<AudioBuffer | null>(null);
+  const fullBufferCache = useRef<AudioBuffer | null>(null);
 
   const safeData = {
     word: data?.word || 'English Word',
@@ -83,6 +88,11 @@ export const MnemonicCard: React.FC<Props> = ({ data, imageUrl, language }) => {
     setShowContent(true);
     setTimer(5);
     setAudioError(null);
+    
+    // Clear caches when word changes
+    wordBufferCache.current = null;
+    fullBufferCache.current = null;
+    
     const interval = setInterval(() => {
       setTimer(prev => {
         if (prev <= 1) {
@@ -107,32 +117,39 @@ export const MnemonicCard: React.FC<Props> = ({ data, imageUrl, language }) => {
     setAudioError(null);
     setIsAudioLoading(true);
     try {
-      let audioBuffer: AudioBuffer | null = null;
+      let audioBuffer: AudioBuffer | null = fullBufferCache.current;
 
       if (!audioContextRef.current) {
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       }
 
-      if (safeData.audioUrl) {
-        // Fetch from Supabase Storage
-        const response = await fetch(safeData.audioUrl);
-        if (!response.ok) throw new Error("Failed to fetch audio file");
-        const arrayBuffer = await response.arrayBuffer();
-        const uint8Array = new Uint8Array(arrayBuffer);
-        audioBuffer = await decodeAudioData(uint8Array, audioContextRef.current, 24000, 1);
-      } else {
-        // Generate on the fly (fallback for old data)
-        const synonymsText = safeData.synonyms.length > 0 ? `. Synonyms: ${safeData.synonyms.join(', ')}.` : '';
-        const ttsText = `${safeData.word}. ${safeData.meaning}. ${safeData.imagination}. ${safeData.connectorSentence}${synonymsText}`;
-        
-        const base64Audio = await gemini.generateTTS(ttsText, language);
+      if (audioContextRef.current.state === 'suspended') {
+        await audioContextRef.current.resume();
+      }
 
-        if (!base64Audio) {
-          throw new Error("No audio data received from API");
+      if (!audioBuffer) {
+        if (safeData.audioUrl) {
+          // Fetch from Supabase Storage
+          const response = await fetch(safeData.audioUrl);
+          if (!response.ok) throw new Error("Failed to fetch audio file");
+          const arrayBuffer = await response.arrayBuffer();
+          const uint8Array = new Uint8Array(arrayBuffer);
+          audioBuffer = await decodeAudioData(uint8Array, audioContextRef.current, 24000, 1);
+        } else {
+          // Generate on the fly (fallback for old data)
+          const synonymsText = safeData.synonyms.length > 0 ? `. Synonyms: ${safeData.synonyms.join(', ')}.` : '';
+          const ttsText = `${safeData.word}. ${safeData.meaning}. ${safeData.imagination}. ${safeData.connectorSentence}${synonymsText}`;
+          
+          const base64Audio = await gemini.generateTTS(ttsText, language);
+
+          if (!base64Audio) {
+            throw new Error("No audio data received from API");
+          }
+
+          const decodedData = decode(base64Audio);
+          audioBuffer = await decodeAudioData(decodedData, audioContextRef.current, 24000, 1);
         }
-
-        const decodedData = decode(base64Audio);
-        audioBuffer = await decodeAudioData(decodedData, audioContextRef.current, 24000, 1);
+        fullBufferCache.current = audioBuffer;
       }
 
       if (!audioBuffer) {
@@ -150,10 +167,72 @@ export const MnemonicCard: React.FC<Props> = ({ data, imageUrl, language }) => {
     } catch (error: any) {
       console.error("Audio Playback Error:", error);
       const message = error?.message || String(error);
-      const isQuota = message.includes('429') || message.includes('RESOURCE_EXHAUSTED');
-      setAudioError(isQuota ? "Audio limit reached (429). Please wait." : "Audio error. Try again.");
+      const isQuota = message.includes('429') || message.includes('RESOURCE_EXHAUSTED') || message.includes('quota');
+      setAudioError(isQuota ? "Daily audio limit reached. Please try again later." : "Could not play audio. Please check your connection.");
+      
+      // Auto-clear error after 5 seconds
+      setTimeout(() => setAudioError(null), 5000);
     } finally {
       setIsAudioLoading(false);
+    }
+  };
+
+  const handlePlayWordOnly = async () => {
+    if (isWordPlaying) {
+      if (wordSourceRef.current) {
+        try { wordSourceRef.current.stop(); } catch (e) {}
+      }
+      setIsWordPlaying(false);
+      return;
+    }
+
+    setAudioError(null);
+    setIsWordLoading(true);
+    try {
+      if (!audioContextRef.current) {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+      }
+
+      if (audioContextRef.current.state === 'suspended') {
+        await audioContextRef.current.resume();
+      }
+
+      let audioBuffer = wordBufferCache.current;
+
+      if (!audioBuffer) {
+        const base64Audio = await gemini.generateTTS(safeData.word, language);
+
+        if (!base64Audio) {
+          throw new Error("No audio data received from API");
+        }
+
+        const decodedData = decode(base64Audio);
+        audioBuffer = await decodeAudioData(decodedData, audioContextRef.current, 24000, 1);
+        wordBufferCache.current = audioBuffer;
+      }
+
+      if (!audioBuffer) {
+        throw new Error("Failed to decode audio buffer");
+      }
+
+      const source = audioContextRef.current.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioContextRef.current.destination);
+      source.onended = () => setIsWordPlaying(false);
+      
+      wordSourceRef.current = source;
+      source.start(0);
+      setIsWordPlaying(true);
+    } catch (error: any) {
+      console.error("Word Audio Playback Error:", error);
+      const message = error?.message || String(error);
+      const isQuota = message.includes('429') || message.includes('RESOURCE_EXHAUSTED') || message.includes('quota');
+      setAudioError(isQuota ? "Daily audio limit reached. Please try again later." : "Could not play audio. Please check your connection.");
+      
+      // Auto-clear error after 5 seconds
+      setTimeout(() => setAudioError(null), 5000);
+    } finally {
+      setIsWordLoading(false);
     }
   };
 
@@ -186,7 +265,27 @@ export const MnemonicCard: React.FC<Props> = ({ data, imageUrl, language }) => {
           </div>
           {audioError && <p className="text-xs font-bold text-red-500 animate-bounce">{audioError}</p>}
         </div>
-        <p className="text-lg sm:text-xl text-gray-500 dark:text-gray-400 font-mono break-words">[{safeData.transcription}] — {safeData.meaning}</p>
+        <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
+          <button 
+            onClick={handlePlayWordOnly}
+            disabled={isWordLoading}
+            className={`p-2 rounded-full transition-all ${
+              isWordPlaying ? 'bg-indigo-100 text-indigo-600 animate-pulse' : 'text-indigo-500 hover:bg-indigo-50'
+            } disabled:opacity-50 shrink-0`}
+            title="Listen to word only"
+          >
+            {isWordLoading ? (
+              <div className="w-4 h-4 border-2 border-indigo-200 border-t-indigo-600 animate-spin rounded-full" />
+            ) : (
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+              </svg>
+            )}
+          </button>
+          <p className="text-lg sm:text-xl text-gray-500 dark:text-gray-400 font-mono break-words">
+            [{safeData.transcription}] — {safeData.meaning}
+          </p>
+        </div>
         <div className="inline-block px-4 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full text-xs sm:text-sm font-semibold">{safeData.morphology}</div>
       </div>
 

@@ -259,6 +259,7 @@ const App: React.FC = () => {
         .from('user_words')
         .select(`
           mnemonic_id,
+          created_at,
           mnemonics_cache (*)
         `)
         .eq('user_id', user.id)
@@ -269,26 +270,38 @@ const App: React.FC = () => {
         return;
       }
 
-      const formatted: SavedMnemonic[] = data.map((item: any) => ({
-        id: item.mnemonic_id,
-        word: item.mnemonics_cache.word,
-        data: {
-          word: item.mnemonics_cache.word,
-          transcription: item.mnemonics_cache.transcription,
-          meaning: item.mnemonics_cache.meaning,
-          morphology: item.mnemonics_cache.morphology,
-          imagination: item.mnemonics_cache.imagination,
-          phoneticLink: item.mnemonics_cache.phonetic_link,
-          connectorSentence: item.mnemonics_cache.connector_sentence,
-          examples: item.mnemonics_cache.examples,
-          synonyms: item.mnemonics_cache.synonyms,
-          imagePrompt: item.mnemonics_cache.image_prompt,
-          audioUrl: item.mnemonics_cache.audio_url
-        },
-        imageUrl: item.mnemonics_cache.image_url,
-        timestamp: new Date(item.mnemonics_cache.created_at).getTime(),
-        language: item.mnemonics_cache.language as Language
-      }));
+      const formatted: SavedMnemonic[] = (data || [])
+        .filter((item: any) => item.mnemonics_cache)
+        .map((item: any) => {
+          const cache = Array.isArray(item.mnemonics_cache) 
+            ? item.mnemonics_cache[0] 
+            : item.mnemonics_cache;
+            
+          if (!cache) return null;
+
+          return {
+            id: item.mnemonic_id,
+            word: cache.word,
+            data: {
+              word: cache.word,
+              transcription: cache.transcription,
+              meaning: cache.meaning,
+              morphology: cache.morphology,
+              imagination: cache.imagination,
+              phoneticLink: cache.phonetic_link,
+              connectorSentence: cache.connector_sentence,
+              examples: cache.examples,
+              synonyms: cache.synonyms,
+              imagePrompt: cache.image_prompt,
+              level: 'Intermediate',
+              audioUrl: cache.audio_url || undefined
+            } as MnemonicResponse,
+            imageUrl: cache.image_url,
+            timestamp: new Date(item.created_at).getTime(),
+            language: cache.language as Language
+          };
+        })
+        .filter((item): item is SavedMnemonic => item !== null);
 
       setSavedMnemonics(formatted);
     };
@@ -352,6 +365,7 @@ const App: React.FC = () => {
           connectorSentence: cachedMnemonic.connector_sentence,
           examples: cachedMnemonic.examples,
           synonyms: cachedMnemonic.synonyms,
+          level: 'Intermediate',
           imagePrompt: cachedMnemonic.image_prompt,
           audioUrl: cachedMnemonic.audio_url
         };

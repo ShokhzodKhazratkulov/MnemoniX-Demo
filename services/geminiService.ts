@@ -79,9 +79,13 @@ export class GeminiService {
                   items: { type: Type.STRING },
                   description: "List of 3-5 synonyms in English with their translations"
               },
+              level: { 
+                  type: Type.STRING, 
+                  description: "CEFR level of the word (Beginner, Pre-Intermediate, Intermediate, Advanced)" 
+              },
               imagePrompt: { type: Type.STRING, description: "Detailed visual description for an image generation AI" }
             },
-            required: ["word", "transcription", "meaning", "morphology", "imagination", "phoneticLink", "connectorSentence", "examples", "synonyms", "imagePrompt"]
+            required: ["word", "transcription", "meaning", "morphology", "imagination", "phoneticLink", "connectorSentence", "examples", "synonyms", "level", "imagePrompt"]
           },
           systemInstruction: `You are a world-class Mnemonics and English Teacher. 
           Your task is to help users memorize English words using vivid, funny, and associative methods.

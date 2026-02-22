@@ -57,6 +57,12 @@ export const Flashcards: React.FC<Props> = ({ savedMnemonics, language }) => {
     setIsStarted(true);
   };
 
+  const playAudio = (url?: string) => {
+    if (!url) return;
+    const audio = new Audio(url);
+    audio.play().catch(e => console.error("Audio play error:", e));
+  };
+
   // Reset flip state when moving to a new card
   useEffect(() => {
     setIsFlipped(false);
@@ -82,36 +88,45 @@ export const Flashcards: React.FC<Props> = ({ savedMnemonics, language }) => {
             <h2 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white tracking-tight">{t.title}</h2>
             <p className="text-gray-500 dark:text-gray-400 font-medium text-sm sm:text-base">{t.range}</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 gap-3 sm:gap-6">
             <div className="text-left space-y-1">
-              <span className="text-[9px] sm:text-[10px] font-black uppercase text-gray-300 dark:text-gray-600 ml-4">{t.from}</span>
-              <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="date-input w-full px-6 sm:px-8 py-4 sm:py-5 bg-gray-50 dark:bg-slate-800 border-2 border-transparent rounded-2xl sm:rounded-3xl outline-none focus:border-indigo-500 font-black text-black dark:text-white transition-all text-sm sm:text-base" />
+              <span className="text-[9px] sm:text-[10px] font-black uppercase text-gray-300 dark:text-gray-600 ml-2 sm:ml-4">{t.from}</span>
+              <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="date-input w-full px-3 sm:px-8 py-3 sm:py-5 bg-gray-50 dark:bg-slate-800 border-2 border-transparent rounded-xl sm:rounded-3xl outline-none focus:border-indigo-500 font-black text-black dark:text-white transition-all text-xs sm:text-base" />
             </div>
             <div className="text-left space-y-1">
-              <span className="text-[9px] sm:text-[10px] font-black uppercase text-gray-300 dark:text-gray-600 ml-4">{t.to}</span>
-              <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="date-input w-full px-6 sm:px-8 py-4 sm:py-5 bg-gray-50 dark:bg-slate-800 border-2 border-transparent rounded-2xl sm:rounded-3xl outline-none focus:border-indigo-500 font-black text-black dark:text-white transition-all text-sm sm:text-base" />
+              <span className="text-[9px] sm:text-[10px] font-black uppercase text-gray-300 dark:text-gray-600 ml-2 sm:ml-4">{t.to}</span>
+              <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="date-input w-full px-3 sm:px-8 py-3 sm:py-5 bg-gray-50 dark:bg-slate-800 border-2 border-transparent rounded-xl sm:rounded-3xl outline-none focus:border-indigo-500 font-black text-black dark:text-white transition-all text-xs sm:text-base" />
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4">
+
+          <div className="flex flex-col gap-4">
             <button 
               disabled={filtered.length === 0}
               onClick={startNormal}
-              className="flex-1 py-5 sm:py-6 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-200 dark:disabled:bg-slate-800 text-white rounded-2xl sm:rounded-3xl font-black text-xl sm:text-2xl shadow-2xl shadow-indigo-200 dark:shadow-none transition-all active:scale-95 transform"
+              className="w-full py-5 sm:py-6 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-200 dark:disabled:bg-slate-800 text-white rounded-2xl sm:rounded-3xl font-black text-xl sm:text-2xl shadow-2xl shadow-indigo-200 dark:shadow-none transition-all active:scale-95 transform"
             >
               {t.start} <span className="opacity-50 ml-2">({filtered.length})</span>
             </button>
-            <button 
-              disabled={filtered.length === 0}
-              onClick={shuffle}
-              className="flex-1 py-5 sm:py-6 bg-white dark:bg-slate-800 border-2 border-indigo-600 text-indigo-600 dark:text-indigo-400 rounded-2xl sm:rounded-3xl font-black text-xl sm:text-2xl shadow-xl transition-all active:scale-95 transform flex items-center justify-center gap-2"
-            >
-              <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              {t.shuffle || 'Shuffle'}
-            </button>
           </div>
         </div>
+
+        {dateFrom && dateTo && filtered.length > 0 && (
+          <div className="mt-8 bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-slate-800 animate-fadeIn">
+            <div className="max-h-[400px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+              {filtered.map(m => (
+                <div key={m.id} className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-slate-800 text-left group transition-all hover:bg-white dark:hover:bg-slate-800">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden shrink-0 border border-gray-200 dark:border-slate-700">
+                    <img src={m.imageUrl} alt={m.word} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-black text-gray-900 dark:text-white text-base sm:text-lg break-words">{m.word}</h4>
+                    <p className="text-gray-500 dark:text-gray-400 font-mono text-[10px] sm:text-xs leading-tight">[{m.data.transcription}]</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -178,7 +193,16 @@ export const Flashcards: React.FC<Props> = ({ savedMnemonics, language }) => {
         </div>
       </div>
 
-      <div className="flex justify-between items-center gap-4 sm:gap-6">
+      <div className="flex justify-between items-center gap-3 sm:gap-4">
+        <button 
+          onClick={shuffle}
+          className="p-4 sm:p-5 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 text-indigo-600 dark:text-indigo-400 rounded-2xl sm:rounded-3xl shadow-sm transition-all active:scale-95 flex items-center justify-center"
+          title={t.shuffle || 'Shuffle'}
+        >
+          <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
         <button 
           onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
           className="flex-1 py-4 sm:py-5 bg-white dark:bg-slate-900 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl sm:rounded-3xl font-black shadow-sm border border-gray-100 dark:border-slate-800 transition-all disabled:opacity-30 disabled:hover:text-gray-400 active:scale-95 text-sm sm:text-base"
@@ -227,6 +251,19 @@ export const Flashcards: React.FC<Props> = ({ savedMnemonics, language }) => {
         }
         .dark .date-input {
           color-scheme: dark;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(79, 70, 229, 0.2);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(79, 70, 229, 0.5);
         }
       `}</style>
     </div>
