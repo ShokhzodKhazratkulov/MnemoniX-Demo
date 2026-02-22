@@ -590,6 +590,7 @@ const App: React.FC = () => {
             </svg>
             <span className="hidden xl:inline">{t.btnLive}</span>
           </button>
+          </div>
         </div>
       </header>
 
