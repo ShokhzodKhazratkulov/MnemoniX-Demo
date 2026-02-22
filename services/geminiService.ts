@@ -74,9 +74,14 @@ export class GeminiService {
                   type: Type.ARRAY,
                   items: { type: Type.STRING }
               },
+              synonyms: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING },
+                  description: "List of 3-5 synonyms in English with their translations"
+              },
               imagePrompt: { type: Type.STRING, description: "Detailed visual description for an image generation AI" }
             },
-            required: ["word", "transcription", "meaning", "morphology", "imagination", "phoneticLink", "connectorSentence", "examples", "imagePrompt"]
+            required: ["word", "transcription", "meaning", "morphology", "imagination", "phoneticLink", "connectorSentence", "examples", "synonyms", "imagePrompt"]
           },
           systemInstruction: `You are a world-class Mnemonics and English Teacher. 
           Your task is to help users memorize English words using vivid, funny, and associative methods.
@@ -85,7 +90,8 @@ export class GeminiService {
           1. All explanatory fields (meaning, morphology, imagination, phoneticLink, connectorSentence) MUST be written EXCLUSIVELY in the ${targetLanguage} language.
           2. The "word" field should remain the original English word.
           3. The "examples" field should contain English sentences with their ${targetLanguage} translations.
-          4. You MUST return a valid JSON object matching the schema. Do not include any text outside the JSON.
+          4. The "synonyms" field should contain 3-5 English synonyms followed by their ${targetLanguage} translations in parentheses.
+          5. You MUST return a valid JSON object matching the schema. Do not include any text outside the JSON.
           
           Structure for ${targetLanguage} content:
           - meaning: Clear translation in ${targetLanguage}.

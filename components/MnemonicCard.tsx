@@ -74,7 +74,9 @@ export const MnemonicCard: React.FC<Props> = ({ data, imageUrl, language }) => {
     imagination: data?.imagination || '...',
     phoneticLink: data?.phoneticLink || '...',
     connectorSentence: data?.connectorSentence || '...',
-    examples: Array.isArray(data?.examples) ? data.examples : []
+    examples: Array.isArray(data?.examples) ? data.examples : [],
+    synonyms: Array.isArray(data?.synonyms) ? data.synonyms : [],
+    audioUrl: data?.audioUrl
   };
 
   useEffect(() => {
@@ -105,20 +107,33 @@ export const MnemonicCard: React.FC<Props> = ({ data, imageUrl, language }) => {
     setAudioError(null);
     setIsAudioLoading(true);
     try {
-      const ttsText = `${safeData.word}. ${safeData.meaning}. ${safeData.imagination}. ${safeData.connectorSentence}`;
-      
-      const base64Audio = await gemini.generateTTS(ttsText, language);
-
-      if (!base64Audio) {
-        throw new Error("No audio data received from API");
-      }
+      let audioBuffer: AudioBuffer | null = null;
 
       if (!audioContextRef.current) {
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       }
 
-      const decodedData = decode(base64Audio);
-      const audioBuffer = await decodeAudioData(decodedData, audioContextRef.current, 24000, 1);
+      if (safeData.audioUrl) {
+        // Fetch from Supabase Storage
+        const response = await fetch(safeData.audioUrl);
+        if (!response.ok) throw new Error("Failed to fetch audio file");
+        const arrayBuffer = await response.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        audioBuffer = await decodeAudioData(uint8Array, audioContextRef.current, 24000, 1);
+      } else {
+        // Generate on the fly (fallback for old data)
+        const synonymsText = safeData.synonyms.length > 0 ? `. Synonyms: ${safeData.synonyms.join(', ')}.` : '';
+        const ttsText = `${safeData.word}. ${safeData.meaning}. ${safeData.imagination}. ${safeData.connectorSentence}${synonymsText}`;
+        
+        const base64Audio = await gemini.generateTTS(ttsText, language);
+
+        if (!base64Audio) {
+          throw new Error("No audio data received from API");
+        }
+
+        const decodedData = decode(base64Audio);
+        audioBuffer = await decodeAudioData(decodedData, audioContextRef.current, 24000, 1);
+      }
 
       if (!audioBuffer) {
         throw new Error("Failed to decode audio buffer");
@@ -204,6 +219,18 @@ export const MnemonicCard: React.FC<Props> = ({ data, imageUrl, language }) => {
              <h3 className="text-indigo-200 font-bold uppercase text-[9px] sm:text-[10px] tracking-widest mb-1 sm:mb-2 opacity-80">Mnemonic Key</h3>
             <p className="text-lg sm:text-xl font-semibold italic">"{safeData.connectorSentence}"</p>
           </div>
+          {safeData.synonyms.length > 0 && (
+            <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border-l-8 border-emerald-400 transition-transform hover:scale-[1.02]">
+              <h3 className="text-emerald-600 dark:text-emerald-400 font-bold uppercase text-[9px] sm:text-[10px] tracking-widest mb-1 sm:mb-2 opacity-60">Synonyms</h3>
+              <div className="flex flex-wrap gap-2">
+                {safeData.synonyms.map((syn, idx) => (
+                  <span key={idx} className="px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 rounded-lg text-sm font-medium">
+                    {syn}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="bg-gray-100 dark:bg-slate-800 p-5 sm:p-6 rounded-xl sm:rounded-2xl border border-gray-200 dark:border-slate-700">
              <h3 className="text-gray-400 dark:text-gray-500 font-bold uppercase text-[9px] sm:text-[10px] tracking-widest mb-3 sm:mb-4">Examples</h3>
              <ul className="space-y-2 sm:space-y-3">

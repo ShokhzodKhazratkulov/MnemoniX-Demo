@@ -8,6 +8,11 @@ import { Dashboard } from './components/Dashboard';
 import { Flashcards } from './components/Flashcards';
 import { FeedbackModal } from './components/FeedbackModal';
 import AboutSection from './components/AboutSection';
+import { Profile } from './components/Profile';
+import { supabase, uploadBase64 } from './services/supabase';
+import { Auth } from './components/Auth';
+import { User } from '@supabase/supabase-js';
+import { LogOut, User as UserIcon } from 'lucide-react';
 
 const gemini = new GeminiService();
 
@@ -23,6 +28,7 @@ const TRANSLATIONS: Record<Language, any> = {
     navHome: "Asosiy",
     navDashboard: "Dashboard",
     navFlashcards: "Flash-kartalar",
+    navProfile: "Profil",
     loadingMsg: "Usta siz uchun eng qiziqarli hikoyani o'ylamoqda...",
     errorMsg: "Kechirasiz, xatolik yuz berdi.",
     quotaError: "Limit tugadi. Iltimos, bir ozdan keyin qayta urinib ko'ring.",
@@ -50,6 +56,7 @@ const TRANSLATIONS: Record<Language, any> = {
     navHome: "Басты",
     navDashboard: "Dashboard",
     navFlashcards: "Флэш-карталар",
+    navProfile: "Профиль",
     loadingMsg: "Шебер сіз үшін ең қызықты хикаяны ойластыруда...",
     errorMsg: "Кешіріңіз, қате кетті.",
     quotaError: "Лимит таусылды. Біраздан кейін қайталап көріңіз.",
@@ -77,6 +84,7 @@ const TRANSLATIONS: Record<Language, any> = {
     navHome: "Асосӣ",
     navDashboard: "Dashboard",
     navFlashcards: "Флэш-кортҳо",
+    navProfile: "Профил",
     loadingMsg: "Устод барои шумо қиссаи ҷолибтаринро фикр мекунад...",
     errorMsg: "Бубахшед, хатогӣ рӯй дод.",
     quotaError: "Маҳдудияти квота. Лутфан каме дертар кӯшиш кунед.",
@@ -104,6 +112,7 @@ const TRANSLATIONS: Record<Language, any> = {
     navHome: "Башкы",
     navDashboard: "Dashboard",
     navFlashcards: "Флэш-карталар",
+    navProfile: "Профиль",
     loadingMsg: "Устат сиз үчүн эң кызыктуу окуяны ойлоп жатат...",
     errorMsg: "Кечиресиз, ката кетти.",
     quotaError: "Лимит бүттү. Бир аздан кийин кайра аракет кылыңыз.",
@@ -131,6 +140,7 @@ const TRANSLATIONS: Record<Language, any> = {
     navHome: "Главная",
     navDashboard: "Дашборд",
     navFlashcards: "Флэш-карты",
+    navProfile: "Профиль",
     loadingMsg: "Мастер придумывает для вас самую интересную историю...",
     errorMsg: "Извините, произошла ошибка.",
     quotaError: "Лимит исчерпан. Пожалуйста, попробуйте позже.",
@@ -158,6 +168,7 @@ const TRANSLATIONS: Record<Language, any> = {
     navHome: "Baş sahypa",
     navDashboard: "Dashboard",
     navFlashcards: "Fleş-kartlar",
+    navProfile: "Profil",
     loadingMsg: "Ussat siz üçin iň gyzykly hekaýany oýlanýar...",
     errorMsg: "Bagyşlaň, ýalňyşlyk ýüze çykdy.",
     quotaError: "Limit gutardy. Haýyş edýäris, birneme soňra gaýtadan synanyşyň.",
@@ -189,8 +200,23 @@ const App: React.FC = () => {
   const [showFeedback, setShowFeedback] = useState(false);
 
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   const t = useMemo(() => TRANSLATIONS[selectedLanguage], [selectedLanguage]);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthChecked(true);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('mnemonix_theme');
@@ -223,19 +249,52 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    const data = localStorage.getItem('mnemonix_db_v2');
-    if (data) {
-      try {
-        setSavedMnemonics(JSON.parse(data));
-      } catch (e) {
-        console.error("Failed to load DB", e);
-      }
+    if (!user) {
+      setSavedMnemonics([]);
+      return;
     }
-  }, []);
 
-  useEffect(() => {
-    localStorage.setItem('mnemonix_db_v2', JSON.stringify(savedMnemonics));
-  }, [savedMnemonics]);
+    const fetchUserWords = async () => {
+      const { data, error } = await supabase
+        .from('user_words')
+        .select(`
+          mnemonic_id,
+          mnemonics_cache (*)
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error("Error fetching user words:", error);
+        return;
+      }
+
+      const formatted: SavedMnemonic[] = data.map((item: any) => ({
+        id: item.mnemonic_id,
+        word: item.mnemonics_cache.word,
+        data: {
+          word: item.mnemonics_cache.word,
+          transcription: item.mnemonics_cache.transcription,
+          meaning: item.mnemonics_cache.meaning,
+          morphology: item.mnemonics_cache.morphology,
+          imagination: item.mnemonics_cache.imagination,
+          phoneticLink: item.mnemonics_cache.phonetic_link,
+          connectorSentence: item.mnemonics_cache.connector_sentence,
+          examples: item.mnemonics_cache.examples,
+          synonyms: item.mnemonics_cache.synonyms,
+          imagePrompt: item.mnemonics_cache.image_prompt,
+          audioUrl: item.mnemonics_cache.audio_url
+        },
+        imageUrl: item.mnemonics_cache.image_url,
+        timestamp: new Date(item.mnemonics_cache.created_at).getTime(),
+        language: item.mnemonics_cache.language as Language
+      }));
+
+      setSavedMnemonics(formatted);
+    };
+
+    fetchUserWords();
+  }, [user]);
 
   const startDictation = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -262,34 +321,124 @@ const App: React.FC = () => {
   };
 
   const performSearch = async (searchTerm: string) => {
-    if (!searchTerm.trim()) return;
+    if (!searchTerm.trim() || !user) return;
 
+    const cleanWord = searchTerm.trim().toLowerCase();
     setState(AppState.LOADING);
     setErrorMessage('');
     
     try {
-      const data = await gemini.getMnemonic(searchTerm, selectedLanguage);
-      const img = await gemini.generateImage(data.imagePrompt);
-      
-      setMnemonicData(data);
-      setImageUrl(img);
+      // 1. Check Global Cache
+      const { data: cachedMnemonic, error: cacheError } = await supabase
+        .from('mnemonics_cache')
+        .select('*')
+        .eq('word', cleanWord)
+        .eq('language', selectedLanguage)
+        .single();
+
+      let finalData: MnemonicResponse;
+      let finalImageUrl: string;
+      let finalAudioUrl: string | undefined;
+      let mnemonicId: string;
+
+      if (cachedMnemonic) {
+        finalData = {
+          word: cachedMnemonic.word,
+          transcription: cachedMnemonic.transcription,
+          meaning: cachedMnemonic.meaning,
+          morphology: cachedMnemonic.morphology,
+          imagination: cachedMnemonic.imagination,
+          phoneticLink: cachedMnemonic.phonetic_link,
+          connectorSentence: cachedMnemonic.connector_sentence,
+          examples: cachedMnemonic.examples,
+          synonyms: cachedMnemonic.synonyms,
+          imagePrompt: cachedMnemonic.image_prompt,
+          audioUrl: cachedMnemonic.audio_url
+        };
+        finalImageUrl = cachedMnemonic.image_url;
+        finalAudioUrl = cachedMnemonic.audio_url;
+        mnemonicId = cachedMnemonic.id;
+      } else {
+        // 2. Generate with AI
+        const data = await gemini.getMnemonic(cleanWord, selectedLanguage);
+        const imgBase64 = await gemini.generateImage(data.imagePrompt);
+        
+        // Generate TTS text
+        const synonymsText = data.synonyms.length > 0 ? `. Synonyms: ${data.synonyms.join(', ')}.` : '';
+        const ttsText = `${data.word}. ${data.meaning}. ${data.imagination}. ${data.connectorSentence}${synonymsText}`;
+        const audioBase64 = await gemini.generateTTS(ttsText, selectedLanguage);
+
+        // 3. Upload to Storage
+        const timestamp = Date.now();
+        const imgFileName = `${cleanWord}_${selectedLanguage}_${timestamp}.png`;
+        const audioFileName = `${cleanWord}_${selectedLanguage}_${timestamp}.pcm`;
+        
+        const [publicImageUrl, publicAudioUrl] = await Promise.all([
+          uploadBase64(imgBase64, 'mnemonics', `images/${imgFileName}`, 'image/png'),
+          uploadBase64(audioBase64, 'mnemonics', `audio/${audioFileName}`, 'audio/pcm')
+        ]);
+
+        // 4. Save to Cache
+        const { data: newCache, error: insertError } = await supabase
+          .from('mnemonics_cache')
+          .insert({
+            word: cleanWord,
+            language: selectedLanguage,
+            transcription: data.transcription,
+            meaning: data.meaning,
+            morphology: data.morphology,
+            imagination: data.imagination,
+            phonetic_link: data.phoneticLink,
+            connector_sentence: data.connectorSentence,
+            examples: data.examples,
+            synonyms: data.synonyms,
+            image_prompt: data.imagePrompt,
+            image_url: publicImageUrl,
+            audio_url: publicAudioUrl
+          })
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+        
+        finalData = { ...data, audioUrl: publicAudioUrl };
+        finalImageUrl = publicImageUrl;
+        finalAudioUrl = publicAudioUrl;
+        mnemonicId = newCache.id;
+      }
+
+      // 5. Save to User Progress
+      await supabase
+        .from('user_words')
+        .upsert({
+          user_id: user.id,
+          mnemonic_id: mnemonicId,
+          last_reviewed_at: new Date().toISOString()
+        }, { onConflict: 'user_id,mnemonic_id' });
+
+      setMnemonicData(finalData);
+      setImageUrl(finalImageUrl);
       setState(AppState.RESULTS);
       setView(AppView.HOME);
 
+      // Update local dashboard state
       const newEntry: SavedMnemonic = {
-        id: crypto.randomUUID(),
-        word: data.word,
-        data: data,
-        imageUrl: img,
+        id: mnemonicId,
+        word: finalData.word,
+        data: finalData,
+        imageUrl: finalImageUrl,
         timestamp: Date.now(),
         language: selectedLanguage
       };
-      setSavedMnemonics(prev => [newEntry, ...prev]);
+      
+      if (!savedMnemonics.find(m => m.id === mnemonicId)) {
+        setSavedMnemonics(prev => [newEntry, ...prev]);
+      }
 
     } catch (error: any) {
       console.error(error);
-      const status = error?.status || error?.error?.code;
-      if (status === 429) {
+      const message = error?.message || '';
+      if (message.includes('429') || message.includes('quota')) {
         setErrorMessage(t.quotaError);
       } else {
         setErrorMessage(t.errorMsg);
@@ -312,40 +461,34 @@ const App: React.FC = () => {
     { id: Language.TURKMEN, label: '🇹🇲 Türkmen' },
   ];
 
-  return (
-    <div className="min-h-screen pb-20 px-4 md:px-8 bg-[#fdfdff] dark:bg-slate-950 transition-colors duration-300 overflow-x-hidden">
-      <header className="py-4 sm:py-6 flex flex-col lg:flex-row items-center justify-between max-w-6xl mx-auto gap-4 border-b border-gray-100 dark:border-slate-800 mb-8 w-full">
-        <div className="flex items-center gap-3 cursor-pointer group shrink-0" onClick={() => setView(AppView.HOME)}>
-          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white text-lg sm:text-xl font-bold shadow-lg shadow-indigo-200 dark:shadow-none transition-transform group-hover:scale-110">
-            M
-          </div>
-          <h1 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white tracking-tight">{t.title}</h1>
-        </div>
-        
-        <nav className="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-x-auto max-w-full no-scrollbar">
-          {[
-            { id: AppView.HOME, label: t.navHome },
-            { id: AppView.DASHBOARD, label: t.navDashboard },
-            { id: AppView.FLASHCARDS, label: t.navFlashcards }
-          ].map((item) => (
-            <button 
-              key={item.id}
-              onClick={() => {
-                setView(item.id);
-                if (item.id !== AppView.HOME) setState(AppState.IDLE);
-              }}
-              className={`px-3 sm:px-5 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${view === item.id ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setView(AppView.HOME);
+    setState(AppState.IDLE);
+  };
 
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <button
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent animate-spin rounded-full"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'dark bg-slate-950' : 'bg-gray-50'}`}>
+        <header className="py-4 sm:py-6 flex items-center justify-between max-w-6xl mx-auto px-4 border-b border-gray-100 dark:border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white text-lg sm:text-xl font-bold shadow-lg shadow-indigo-200 dark:shadow-none">
+              M
+            </div>
+            <h1 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white tracking-tight">MnemoniX</h1>
+          </div>
+          <button 
             onClick={toggleDarkMode}
             className="p-2 sm:p-2.5 rounded-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all shadow-sm"
-            aria-label="Toggle Dark Mode"
           >
             {isDarkMode ? (
               <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -357,16 +500,81 @@ const App: React.FC = () => {
               </svg>
             )}
           </button>
+        </header>
+        <Auth onSuccess={() => {}} />
+      </div>
+    );
+  }
 
-          <select 
-            value={selectedLanguage}
-            onChange={handleLanguageChange}
-            className="appearance-none bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-full px-3 sm:px-4 py-2 font-bold text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer text-xs sm:text-sm"
-          >
-            {languages.map(lang => (
-              <option key={lang.id} value={lang.id}>{lang.label}</option>
+  return (
+    <div className="min-h-screen pb-20 px-4 md:px-8 bg-[#fdfdff] dark:bg-slate-950 transition-colors duration-300 overflow-x-hidden">
+      <header className="py-4 sm:py-6 flex flex-col gap-6 max-w-6xl mx-auto border-b border-gray-100 dark:border-slate-800 mb-8 w-full">
+        {/* Top Row: Logo and Profile/Theme */}
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-3 cursor-pointer group shrink-0" onClick={() => setView(AppView.HOME)}>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white text-lg sm:text-xl font-bold shadow-lg shadow-indigo-200 dark:shadow-none transition-transform group-hover:scale-110">
+              M
+            </div>
+            <h1 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white tracking-tight">{t.title}</h1>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setView(AppView.PROFILE)}
+              className={`p-2 sm:p-2.5 rounded-full border transition-all shadow-sm ${view === AppView.PROFILE ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
+              title={t.navProfile || 'Profile'}
+            >
+              <UserIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 sm:p-2.5 rounded-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all shadow-sm"
+              aria-label="Toggle Dark Mode"
+            >
+              {isDarkMode ? (
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 5a7 7 0 100 14 7 7 0 000-14z" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+        
+        {/* Bottom Row: Navigation and Language/Voice */}
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+          <nav className="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-x-auto max-w-full no-scrollbar">
+            {[
+              { id: AppView.HOME, label: t.navHome },
+              { id: AppView.DASHBOARD, label: t.navDashboard },
+              { id: AppView.FLASHCARDS, label: t.navFlashcards }
+            ].map((item) => (
+              <button 
+                key={item.id}
+                onClick={() => {
+                  setView(item.id);
+                  if (item.id !== AppView.HOME) setState(AppState.IDLE);
+                }}
+                className={`px-3 sm:px-5 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${view === item.id ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
+              >
+                {item.label}
+              </button>
             ))}
-          </select>
+          </nav>
+
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <select 
+              value={selectedLanguage}
+              onChange={handleLanguageChange}
+              className="appearance-none bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-full px-3 sm:px-4 py-2 font-bold text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer text-xs sm:text-sm"
+            >
+              {languages.map(lang => (
+                <option key={lang.id} value={lang.id}>{lang.label}</option>
+              ))}
+            </select>
 
           <button 
             onClick={() => setState(AppState.VOICE_MODE)}
@@ -517,6 +725,14 @@ const App: React.FC = () => {
 
         {view === AppView.FLASHCARDS && (
           <Flashcards savedMnemonics={savedMnemonics} language={selectedLanguage} />
+        )}
+
+        {view === AppView.PROFILE && user && (
+          <Profile 
+            user={user} 
+            totalWords={savedMnemonics.length} 
+            onSignOut={handleSignOut} 
+          />
         )}
       </main>
 

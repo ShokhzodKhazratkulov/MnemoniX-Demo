@@ -17,7 +17,9 @@ export interface MnemonicResponse {
   phoneticLink: string;
   connectorSentence: string;
   examples: string[];
+  synonyms: string[];
   imagePrompt: string;
+  audioUrl?: string;
 }
 
 export interface SavedMnemonic {
@@ -40,5 +42,6 @@ export enum AppState {
 export enum AppView {
   HOME = 'HOME',
   DASHBOARD = 'DASHBOARD',
-  FLASHCARDS = 'FLASHCARDS'
+  FLASHCARDS = 'FLASHCARDS',
+  PROFILE = 'PROFILE'
 }

@@ -8,12 +8,12 @@ interface Props {
 }
 
 const FLASH_T: Record<Language, any> = {
-  [Language.UZBEK]: { title: "Flash-kartalar", range: "Davrni tanlang", empty: "Hali hech narsa o'rganilmagan", start: "Boshlash", next: "Keyingisi", prev: "Oldingisi", finish: "Tugatish", from: "Boshlanish sanasi", to: "Tugash sanasi", hint: "Kartani aylantirish uchun bosing" },
-  [Language.KAZAKH]: { title: "Флэш-карталар", range: "Кезеңді таңдаңыз", empty: "Әлі ештеңе үйренілмеген", start: "Бастау", next: "Келесі", prev: "Алдыңғы", finish: "Аяқтау", from: "Басталу күні", to: "Аяқталу күні", hint: "Картаны айналдыру үшін басыңыз" },
-  [Language.TAJIK]: { title: "Флэш-кортҳо", range: "Давраро интихоб кунед", empty: "Ҳанӯз чизе омӯхта نشدهаст", start: "Оғоз", next: "Оянда", prev: "Пешина", finish: "Анҷом", from: "Таърихи оғоз", to: "Таърихи анҷом", hint: "Барои чаппа кардани корт пахш кунед" },
-  [Language.KYRGYZ]: { title: "Флэш-карталар", range: "Мөөнөттү тандаңыз", empty: "Азырынча эч нерсе үйрөнүлө элек", start: "Баштоо", next: "Кийинки", prev: "Мурунку", finish: "Бүтүрүү", from: "Баштоо күнү", to: "Аяктоо күнү", hint: "Картаны которуу үчүн басыңыз" },
-  [Language.RUSSIAN]: { title: "Флэш-карты", range: "Выберите период", empty: "Еще ничего не выучено", start: "Начать", next: "Далее", prev: "Назад", finish: "Завершить", from: "Дата начала", to: "Дата окончания", hint: "Нажмите, чтобы перевернуть" },
-  [Language.TURKMEN]: { title: "Fleş-kartlar", range: "Döwri saýlaň", empty: "Entek hiç zat öwrenilmedi", start: "Başlat", next: "Indiki", prev: "Öňki", finish: "Gutar", from: "Başlangyç senesi", to: "Tamatlanýan senesi", hint: "Karty aýlamak üçin basyň" },
+  [Language.UZBEK]: { title: "Flash-kartalar", range: "Davrni tanlang", empty: "Hali hech narsa o'rganilmagan", start: "Boshlash", next: "Keyingisi", prev: "Oldingisi", finish: "Tugatish", from: "Boshlanish sanasi", to: "Tugash sanasi", hint: "Kartani aylantirish uchun bosing", shuffle: "Aralashtirish" },
+  [Language.KAZAKH]: { title: "Флэш-карталар", range: "Кезеңді таңдаңыз", empty: "Әлі ештеңе үйренілмеген", start: "Бастау", next: "Келесі", prev: "Алдыңғы", finish: "Аяқтау", from: "Басталу күні", to: "Аяқталу күні", hint: "Картаны айналдыру үшін басыңыз", shuffle: "Араластыру" },
+  [Language.TAJIK]: { title: "Флэш-кортҳо", range: "Давраро интихоб кунед", empty: "Ҳанӯз чизе омӯхта نشدهаст", start: "Оғоз", next: "Оянда", prev: "Пешина", finish: "Анҷом", from: "Таърихи оғоз", to: "Таърихи анҷом", hint: "Барои чаппа кардани корт пахш кунед", shuffle: "Омехта кардан" },
+  [Language.KYRGYZ]: { title: "Флэш-карталар", range: "Мөөнөттү тандаңыз", empty: "Азырынча эч нерсе үйрөнүлө элек", start: "Баштоо", next: "Кийинки", prev: "Мурунку", finish: "Бүтүрүү", from: "Баштоо күнү", to: "Аяктоо күнү", hint: "Картаны которуу үчүн басыңыз", shuffle: "Аралаштыруу" },
+  [Language.RUSSIAN]: { title: "Флэш-карты", range: "Выберите период", empty: "Еще ничего не выучено", start: "Начать", next: "Далее", prev: "Назад", finish: "Завершить", from: "Дата начала", to: "Дата окончания", hint: "Нажмите, чтобы перевернуть", shuffle: "Перемешать" },
+  [Language.TURKMEN]: { title: "Fleş-kartlar", range: "Döwri saýlaň", empty: "Entek hiç zat öwrenilmedi", start: "Başlat", next: "Indiki", prev: "Öňki", finish: "Gutar", from: "Başlangyç senesi", to: "Tamatlanýan senesi", hint: "Karty aýlamak üçün basyň", shuffle: "Garyşdyr" },
 };
 
 export const Flashcards: React.FC<Props> = ({ savedMnemonics, language }) => {
@@ -23,6 +23,7 @@ export const Flashcards: React.FC<Props> = ({ savedMnemonics, language }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isStarted, setIsStarted] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [shuffledIndices, setShuffledIndices] = useState<number[]>([]);
 
   const filtered = useMemo(() => {
     return savedMnemonics.filter(m => {
@@ -38,6 +39,23 @@ export const Flashcards: React.FC<Props> = ({ savedMnemonics, language }) => {
       return true;
     });
   }, [savedMnemonics, dateFrom, dateTo]);
+
+  const shuffle = () => {
+    const indices = Array.from({ length: filtered.length }, (_, i) => i);
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+    setShuffledIndices(indices);
+    setCurrentIndex(0);
+    setIsStarted(true);
+  };
+
+  const startNormal = () => {
+    setShuffledIndices(Array.from({ length: filtered.length }, (_, i) => i));
+    setCurrentIndex(0);
+    setIsStarted(true);
+  };
 
   // Reset flip state when moving to a new card
   useEffect(() => {
@@ -74,19 +92,31 @@ export const Flashcards: React.FC<Props> = ({ savedMnemonics, language }) => {
               <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="date-input w-full px-6 sm:px-8 py-4 sm:py-5 bg-gray-50 dark:bg-slate-800 border-2 border-transparent rounded-2xl sm:rounded-3xl outline-none focus:border-indigo-500 font-black text-black dark:text-white transition-all text-sm sm:text-base" />
             </div>
           </div>
-          <button 
-            disabled={filtered.length === 0}
-            onClick={() => setIsStarted(true)}
-            className="w-full py-5 sm:py-6 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-200 dark:disabled:bg-slate-800 text-white rounded-2xl sm:rounded-3xl font-black text-xl sm:text-2xl shadow-2xl shadow-indigo-200 dark:shadow-none transition-all active:scale-95 transform"
-          >
-            {t.start} <span className="opacity-50 ml-2">({filtered.length})</span>
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button 
+              disabled={filtered.length === 0}
+              onClick={startNormal}
+              className="flex-1 py-5 sm:py-6 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-200 dark:disabled:bg-slate-800 text-white rounded-2xl sm:rounded-3xl font-black text-xl sm:text-2xl shadow-2xl shadow-indigo-200 dark:shadow-none transition-all active:scale-95 transform"
+            >
+              {t.start} <span className="opacity-50 ml-2">({filtered.length})</span>
+            </button>
+            <button 
+              disabled={filtered.length === 0}
+              onClick={shuffle}
+              className="flex-1 py-5 sm:py-6 bg-white dark:bg-slate-800 border-2 border-indigo-600 text-indigo-600 dark:text-indigo-400 rounded-2xl sm:rounded-3xl font-black text-xl sm:text-2xl shadow-xl transition-all active:scale-95 transform flex items-center justify-center gap-2"
+            >
+              <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              {t.shuffle || 'Shuffle'}
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  const current = filtered[currentIndex];
+  const current = filtered[shuffledIndices[currentIndex]];
 
   return (
     <div className="max-w-xl mx-auto space-y-8 animate-fadeIn mt-4">
