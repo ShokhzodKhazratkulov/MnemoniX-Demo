@@ -379,7 +379,8 @@ const App: React.FC = () => {
         
         // Generate TTS text
         const synonymsText = data.synonyms.length > 0 ? `. Synonyms: ${data.synonyms.join(', ')}.` : '';
-        const ttsText = `${data.word}. ${data.meaning}. ${data.imagination}. ${data.connectorSentence}${synonymsText}`;
+        const examplesText = data.examples.length > 0 ? `. Examples: ${data.examples.join('. ')}.` : '';
+        const ttsText = `${data.word}. ${data.meaning}. ${data.imagination}. Phonetic Link: ${data.phoneticLink}. ${data.connectorSentence}${synonymsText}${examplesText}`;
         const audioBase64 = await gemini.generateTTS(ttsText, selectedLanguage);
 
         // 3. Upload to Storage
