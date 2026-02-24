@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL;
 const supabaseAnonKey = (import.meta as any).env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn("Supabase credentials missing. Auth and DB features will be disabled until configured.");
+if (!supabaseUrl || supabaseUrl === 'https://placeholder.supabase.co') {
+  console.error("DEBUG: Supabase URL is missing or using placeholder. This means your environment variables were NOT present during the build process.");
 }
 
 export const supabase = createClient(

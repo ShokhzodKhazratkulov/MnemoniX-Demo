@@ -37,7 +37,11 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess }) => {
       }
       onSuccess();
     } catch (err: any) {
-      setError(err.message);
+      if (err.message === 'Failed to fetch' && (supabase as any).supabaseUrl?.includes('placeholder')) {
+        setError("Configuration Error: The app was built without Supabase credentials. Please rebuild your app in Hostinger.");
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }

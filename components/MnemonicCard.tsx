@@ -290,17 +290,68 @@ export const MnemonicCard: React.FC<Props> = ({ data, imageUrl, language }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
-        <div className="relative bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-gray-100 dark:border-slate-800">
-          <img 
-            src={imageUrl || 'https://placehold.co/600x600?text=Imagining...'} 
-            alt={safeData.word} 
-            className="w-full h-auto object-cover min-h-[250px] sm:min-h-[300px]" 
-          />
-          {timer > 0 && (
-            <div className="absolute inset-0 bg-black/70 dark:bg-black/80 flex flex-col items-center justify-center text-white p-4 sm:p-6 text-center">
-              <p className="text-base sm:text-lg font-bold mb-1 sm:mb-2">Visualize this for</p>
-              <p className="text-5xl sm:text-6xl font-black">{timer}</p>
-              <p className="mt-3 sm:mt-4 text-xs opacity-80">Close your eyes and see the scene...</p>
+        <div className="space-y-6 sm:space-y-8">
+          <div className="relative bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-gray-100 dark:border-slate-800">
+            <img 
+              src={imageUrl || 'https://placehold.co/600x600?text=Imagining...'} 
+              alt={safeData.word} 
+              className="w-full h-auto object-cover min-h-[250px] sm:min-h-[300px]" 
+            />
+            {timer > 0 && (
+              <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center text-white p-4 sm:p-6 text-center z-20 animate-fadeIn">
+                <div className="relative w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center mb-6">
+                  {/* Progress Ring */}
+                  <svg className="absolute inset-0 w-full h-full -rotate-90">
+                    <circle
+                      cx="50%"
+                      cy="50%"
+                      r="45%"
+                      className="stroke-white/10 fill-none"
+                      strokeWidth="8"
+                    />
+                    <circle
+                      cx="50%"
+                      cy="50%"
+                      r="45%"
+                      className="stroke-indigo-500 fill-none transition-all duration-1000 ease-linear"
+                      strokeWidth="8"
+                      strokeDasharray="283%"
+                      strokeDashoffset={`${((5 - timer) / 5) * 283}%`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="text-center">
+                    <p className="text-4xl sm:text-5xl font-black tabular-nums">{timer}</p>
+                    <p className="text-[10px] uppercase tracking-widest opacity-50 font-bold">Sec</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2 max-w-[200px]">
+                  <p className="text-base sm:text-lg font-bold leading-tight">Visualize the scene</p>
+                  <p className="text-xs opacity-60 leading-relaxed">Close your eyes and make the image vivid in your mind...</p>
+                </div>
+
+                <button 
+                  onClick={() => setTimer(0)}
+                  className="mt-8 px-6 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-xs font-black tracking-widest uppercase transition-all active:scale-95"
+                >
+                  Skip
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop only Synonyms: Moved below image to reduce scrolling */}
+          {safeData.synonyms.length > 0 && (
+            <div className="hidden lg:block bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border-l-8 border-emerald-400 transition-transform hover:scale-[1.02]">
+              <h3 className="text-emerald-600 dark:text-emerald-400 font-bold uppercase text-[9px] sm:text-[10px] tracking-widest mb-1 sm:mb-2 opacity-60">Synonyms</h3>
+              <div className="flex flex-wrap gap-2">
+                {safeData.synonyms.map((syn, idx) => (
+                  <span key={idx} className="px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 rounded-lg text-sm font-medium">
+                    {syn}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -318,8 +369,9 @@ export const MnemonicCard: React.FC<Props> = ({ data, imageUrl, language }) => {
              <h3 className="text-indigo-200 font-bold uppercase text-[9px] sm:text-[10px] tracking-widest mb-1 sm:mb-2 opacity-80">Mnemonic Key</h3>
             <p className="text-lg sm:text-xl font-semibold italic">"{safeData.connectorSentence}"</p>
           </div>
+          {/* Mobile/Tablet only Synonyms: Keep original position for smaller screens */}
           {safeData.synonyms.length > 0 && (
-            <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border-l-8 border-emerald-400 transition-transform hover:scale-[1.02]">
+            <div className="lg:hidden bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border-l-8 border-emerald-400 transition-transform hover:scale-[1.02]">
               <h3 className="text-emerald-600 dark:text-emerald-400 font-bold uppercase text-[9px] sm:text-[10px] tracking-widest mb-1 sm:mb-2 opacity-60">Synonyms</h3>
               <div className="flex flex-wrap gap-2">
                 {safeData.synonyms.map((syn, idx) => (
