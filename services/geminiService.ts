@@ -53,6 +53,23 @@ export class GeminiService {
     throw lastError;
   }
 
+  async checkSpelling(word: string): Promise<string> {
+    return this.withRetry(async () => {
+      const response = await this.ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: `Correct the spelling of the following English word: "${word}". 
+        Return ONLY the corrected word. If the word is already correct, return it as is. 
+        Do not include any punctuation or explanations.`,
+        config: {
+          thinkingConfig: { thinkingLevel: "LOW" }
+        }
+      });
+
+      const corrected = response.text?.trim().toLowerCase().replace(/[^a-z]/g, '');
+      return corrected || word.toLowerCase();
+    });
+  }
+
   async getMnemonic(word: string, targetLanguage: Language): Promise<MnemonicResponse> {
     return this.withRetry(async () => {
       const response = await this.ai.models.generateContent({

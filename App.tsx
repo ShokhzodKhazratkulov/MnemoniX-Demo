@@ -336,18 +336,28 @@ const App: React.FC = () => {
   const performSearch = async (searchTerm: string) => {
     if (!searchTerm.trim() || !user) return;
 
-    const cleanWord = searchTerm.trim().toLowerCase();
     setState(AppState.LOADING);
     setErrorMessage('');
     
     try {
+      // 0. Spelling Correction
+      console.log(`DEBUG: Checking spelling for "${searchTerm}"...`);
+      const cleanWord = await gemini.checkSpelling(searchTerm.trim());
+      console.log(`DEBUG: Corrected word: "${cleanWord}"`);
+
+      console.log(`DEBUG: Searching for "${cleanWord}" in language "${selectedLanguage}"...`);
+      
       // 1. Check Global Cache
       const { data: cachedMnemonic, error: cacheError } = await supabase
         .from('mnemonics_cache')
         .select('*')
         .eq('word', cleanWord)
         .eq('language', selectedLanguage)
-        .single();
+        .maybeSingle(); // Use maybeSingle to avoid error on 0 rows
+
+      if (cacheError) {
+        console.error("DEBUG: Cache query error:", cacheError);
+      }
 
       let finalData: MnemonicResponse;
       let finalImageUrl: string;
@@ -355,6 +365,7 @@ const App: React.FC = () => {
       let mnemonicId: string;
 
       if (cachedMnemonic) {
+        console.log("DEBUG: Cache HIT found in database.");
         finalData = {
           word: cachedMnemonic.word,
           transcription: cachedMnemonic.transcription,
@@ -372,18 +383,35 @@ const App: React.FC = () => {
         finalImageUrl = cachedMnemonic.image_url;
         finalAudioUrl = cachedMnemonic.audio_url;
         mnemonicId = cachedMnemonic.id;
+
+        setMnemonicData(finalData);
+        setImageUrl(finalImageUrl);
+        setState(AppState.RESULTS);
+        setView(AppView.HOME);
       } else {
+        console.log("DEBUG: Cache MISS. Generating with AI...");
         // 2. Generate with AI
         const data = await gemini.getMnemonic(cleanWord, selectedLanguage);
-        const imgBase64 = await gemini.generateImage(data.imagePrompt);
         
-        // Generate TTS text
-        const synonymsText = data.synonyms.length > 0 ? `. Synonyms: ${data.synonyms.join(', ')}.` : '';
-        const examplesText = data.examples.length > 0 ? `. Examples: ${data.examples.join('. ')}.` : '';
-        const ttsText = `${data.word}. ${data.meaning}. ${data.imagination}. Phonetic Link: ${data.phoneticLink}. ${data.connectorSentence}${synonymsText}${examplesText}`;
-        const audioBase64 = await gemini.generateTTS(ttsText, selectedLanguage);
+        // --- FAST LOADING: Show text immediately ---
+        setMnemonicData(data);
+        setImageUrl(''); // Clear previous image
+        setState(AppState.RESULTS);
+        setView(AppView.HOME);
+        // -------------------------------------------
 
-        // 3. Upload to Storage
+        // Parallelize Image and Audio generation to save time
+        const [imgBase64, audioBase64] = await Promise.all([
+          gemini.generateImage(data.imagePrompt),
+          (async () => {
+            const synonymsText = data.synonyms.length > 0 ? `. Synonyms: ${data.synonyms.join(', ')}.` : '';
+            const examplesText = data.examples.length > 0 ? `. Examples: ${data.examples.join('. ')}.` : '';
+            const ttsText = `${data.word}. ${data.meaning}. ${data.imagination}. Phonetic Link: ${data.phoneticLink}. ${data.connectorSentence}${synonymsText}${examplesText}`;
+            return gemini.generateTTS(ttsText, selectedLanguage);
+          })()
+        ]);
+
+        // 3. Upload to Storage (Parallelized)
         const timestamp = Date.now();
         const imgFileName = `${cleanWord}_${selectedLanguage}_${timestamp}.png`;
         const audioFileName = `${cleanWord}_${selectedLanguage}_${timestamp}.pcm`;
@@ -420,6 +448,10 @@ const App: React.FC = () => {
         finalImageUrl = publicImageUrl;
         finalAudioUrl = publicAudioUrl;
         mnemonicId = newCache.id;
+
+        // Update UI with media
+        setMnemonicData(finalData);
+        setImageUrl(finalImageUrl);
       }
 
       // 5. Save to User Progress
@@ -430,11 +462,6 @@ const App: React.FC = () => {
           mnemonic_id: mnemonicId,
           last_reviewed_at: new Date().toISOString()
         }, { onConflict: 'user_id,mnemonic_id' });
-
-      setMnemonicData(finalData);
-      setImageUrl(finalImageUrl);
-      setState(AppState.RESULTS);
-      setView(AppView.HOME);
 
       // Update local dashboard state
       const newEntry: SavedMnemonic = {
@@ -451,12 +478,17 @@ const App: React.FC = () => {
       }
 
     } catch (error: any) {
-      console.error(error);
-      const message = error?.message || '';
-      if (message.includes('429') || message.includes('quota')) {
+      console.error("Search Error:", error);
+      const message = error?.message || String(error);
+      
+      if (message.includes('429') || message.includes('quota') || message.includes('RESOURCE_EXHAUSTED')) {
         setErrorMessage(t.quotaError);
+      } else if (message.includes('bucket') || message.includes('storage') || message.includes('upload')) {
+        setErrorMessage("Supabase Storage Error: Please ensure the 'mnemonics' bucket exists and is public.");
+      } else if (message.includes('API_KEY') || message.includes('API key')) {
+        setErrorMessage("API Key Error: Please check your Gemini API key in Hostinger environment variables.");
       } else {
-        setErrorMessage(t.errorMsg);
+        setErrorMessage(`${t.errorMsg} (${message.substring(0, 50)}${message.length > 50 ? '...' : ''})`);
       }
       setState(AppState.ERROR);
     }

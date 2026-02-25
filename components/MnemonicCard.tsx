@@ -138,7 +138,8 @@ export const MnemonicCard: React.FC<Props> = ({ data, imageUrl, language }) => {
         } else {
           // Generate on the fly (fallback for old data)
           const synonymsText = safeData.synonyms.length > 0 ? `. Synonyms: ${safeData.synonyms.join(', ')}.` : '';
-          const ttsText = `${safeData.word}. ${safeData.meaning}. ${safeData.imagination}. ${safeData.connectorSentence}${synonymsText}`;
+          const examplesText = safeData.examples.length > 0 ? `. Examples: ${safeData.examples.join('. ')}.` : '';
+          const ttsText = `${safeData.word}. ${safeData.meaning}. ${safeData.imagination}. Phonetic Link: ${safeData.phoneticLink}. ${safeData.connectorSentence}${synonymsText}${examplesText}`;
           
           const base64Audio = await gemini.generateTTS(ttsText, language);
 
