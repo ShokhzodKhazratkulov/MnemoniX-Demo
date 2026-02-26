@@ -333,27 +333,46 @@ const App: React.FC = () => {
     recognition.start();
   };
 
+  const [loadingMessage, setLoadingMessage] = useState('');
+
   const performSearch = async (searchTerm: string) => {
     if (!searchTerm.trim() || !user) return;
 
     setState(AppState.LOADING);
     setErrorMessage('');
+    setLoadingMessage('Checking spelling...');
     
     try {
-      // 0. Spelling Correction
-      console.log(`DEBUG: Checking spelling for "${searchTerm}"...`);
-      const cleanWord = await gemini.checkSpelling(searchTerm.trim());
-      console.log(`DEBUG: Corrected word: "${cleanWord}"`);
-
-      console.log(`DEBUG: Searching for "${cleanWord}" in language "${selectedLanguage}"...`);
+      const rawWord = searchTerm.trim().toLowerCase();
       
-      // 1. Check Global Cache
-      const { data: cachedMnemonic, error: cacheError } = await supabase
+      // 1. Check Global Cache (Direct Match)
+      let { data: cachedMnemonic, error: cacheError } = await supabase
         .from('mnemonics_cache')
         .select('*')
-        .eq('word', cleanWord)
+        .eq('word', rawWord)
         .eq('language', selectedLanguage)
-        .maybeSingle(); // Use maybeSingle to avoid error on 0 rows
+        .maybeSingle();
+
+      let cleanWord = rawWord;
+
+      // 2. If no direct match, try spelling correction
+      if (!cachedMnemonic) {
+        setLoadingMessage('Correcting spelling...');
+        cleanWord = await gemini.checkSpelling(rawWord);
+
+        if (cleanWord !== rawWord) {
+          setLoadingMessage(`Searching for "${cleanWord}"...`);
+          const { data: correctedMnemonic, error: correctedError } = await supabase
+            .from('mnemonics_cache')
+            .select('*')
+            .eq('word', cleanWord)
+            .eq('language', selectedLanguage)
+            .maybeSingle();
+          
+          cachedMnemonic = correctedMnemonic;
+          cacheError = correctedError;
+        }
+      }
 
       if (cacheError) {
         console.error("DEBUG: Cache query error:", cacheError);
@@ -365,7 +384,7 @@ const App: React.FC = () => {
       let mnemonicId: string;
 
       if (cachedMnemonic) {
-        console.log("DEBUG: Cache HIT found in database.");
+        setLoadingMessage('Loading from library...');
         finalData = {
           word: cachedMnemonic.word,
           transcription: cachedMnemonic.transcription,
@@ -389,7 +408,7 @@ const App: React.FC = () => {
         setState(AppState.RESULTS);
         setView(AppView.HOME);
       } else {
-        console.log("DEBUG: Cache MISS. Generating with AI...");
+        setLoadingMessage('AI is crafting your story...');
         // 2. Generate with AI
         const data = await gemini.getMnemonic(cleanWord, selectedLanguage);
         
@@ -400,6 +419,7 @@ const App: React.FC = () => {
         setView(AppView.HOME);
         // -------------------------------------------
 
+        setLoadingMessage('Generating image and audio...');
         // Parallelize Image and Audio generation to save time
         const [imgBase64, audioBase64] = await Promise.all([
           gemini.generateImage(data.imagePrompt),
@@ -411,7 +431,7 @@ const App: React.FC = () => {
           })()
         ]);
 
-        // 3. Upload to Storage (Parallelized)
+        setLoadingMessage('Saving to library...');
         const timestamp = Date.now();
         const imgFileName = `${cleanWord}_${selectedLanguage}_${timestamp}.png`;
         const audioFileName = `${cleanWord}_${selectedLanguage}_${timestamp}.pcm`;
@@ -734,8 +754,9 @@ const App: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="text-center space-y-2">
+                  <div className="text-center space-y-3">
                     <p className="text-gray-900 dark:text-white font-black text-xl animate-pulse">{t.loadingMsg}</p>
+                    <p className="text-indigo-600 dark:text-indigo-400 font-bold animate-pulse text-sm uppercase tracking-widest">{loadingMessage}</p>
                   </div>
 
                   <div className="flex gap-2">

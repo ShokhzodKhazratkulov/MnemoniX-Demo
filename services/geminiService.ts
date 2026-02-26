@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, Type, Modality } from "@google/genai";
+import { GoogleGenAI, Type, Modality, ThinkingLevel } from "@google/genai";
 import { MnemonicResponse, Language } from "../types";
 
 export class GeminiService {
@@ -61,7 +61,7 @@ export class GeminiService {
         Return ONLY the corrected word. If the word is already correct, return it as is. 
         Do not include any punctuation or explanations.`,
         config: {
-          thinkingConfig: { thinkingLevel: "LOW" }
+          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW }
         }
       });
 
