@@ -121,26 +121,6 @@ export const Dashboard: React.FC<Props> = ({ savedMnemonics, language }) => {
     };
   }, [savedMnemonics]);
 
-  const [totalUsers, setTotalUsers] = React.useState<number>(0);
-
-  React.useEffect(() => {
-    const fetchUserCount = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('user_words')
-          .select('user_id');
-        
-        if (data) {
-          const uniqueUsers = new Set(data.map(item => item.user_id)).size;
-          setTotalUsers(uniqueUsers);
-        }
-      } catch (e) {
-        console.error("Error fetching user count:", e);
-      }
-    };
-    fetchUserCount();
-  }, []);
-
   const graphData = useMemo(() => {
     const data = [];
     for (let i = 6; i >= 0; i--) {
@@ -183,11 +163,6 @@ export const Dashboard: React.FC<Props> = ({ savedMnemonics, language }) => {
         <div className="bg-white dark:bg-slate-900 p-4 sm:p-8 rounded-2xl sm:rounded-[2rem] shadow-sm border border-gray-100 dark:border-slate-800 flex flex-col justify-center items-center text-center transform hover:scale-105 transition-transform duration-300">
           <span className="text-3xl sm:text-5xl font-black mb-1 sm:mb-2 text-gray-900 dark:text-white">{stats.average}</span>
           <span className="text-gray-400 dark:text-gray-500 font-bold uppercase text-[10px] sm:text-xs tracking-widest">{t.average}</span>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 p-4 sm:p-8 rounded-2xl sm:rounded-[2rem] shadow-sm border border-gray-100 dark:border-slate-800 flex flex-col justify-center items-center text-center transform hover:scale-105 transition-transform duration-300">
-          <span className="text-3xl sm:text-5xl font-black mb-1 sm:mb-2 text-gray-900 dark:text-white">{totalUsers}</span>
-          <span className="text-gray-400 dark:text-gray-500 font-bold uppercase text-[10px] sm:text-xs tracking-widest">Active Learners</span>
         </div>
 
         <div className="bg-white dark:bg-slate-900 p-4 sm:p-8 rounded-2xl sm:rounded-[2rem] shadow-sm border border-gray-100 dark:border-slate-800 flex flex-col justify-center items-center text-center transform hover:scale-105 transition-transform duration-300">
